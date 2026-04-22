@@ -322,6 +322,7 @@ let isFileLinked = false;
 let showScoreGraph = true;
 let showWinrateGraph = true;
 let showKataBubbles = true;
+let isEngineMissing = false;
 
 let activeBubbles = new Set();
 let currentStoneHasScoreText = false;
@@ -1858,8 +1859,26 @@ function updateAnalysisUI() {
     const wrBlack = document.getElementById('winrate-bar-black');
     const wrWhite = document.getElementById('winrate-bar-white');
     const pwrBtn = document.getElementById('btn-toggle-analysis');
+    const missingBanner = document.getElementById('engine-missing-banner');
 
     if (!box || !statusTextEl || !chartCont || !wrContainer) return;
+
+    // --- NEW: Engine Missing State Override ---
+    if (isEngineMissing) {
+        box.classList.add('active');
+        statusTextEl.innerText = 'Engine Offline';
+        missingBanner.style.display = 'flex';
+        wrContainer.style.display = 'none';
+        chartCont.style.display = 'none';
+        pwrBtn.disabled = true;
+        pwrBtn.style.opacity = '0.5';
+        return;
+    } else {
+        if (missingBanner) missingBanner.style.display = 'none';
+        wrContainer.style.display = 'flex';
+        pwrBtn.disabled = false;
+        pwrBtn.style.opacity = '1';
+    }
 
     let statusText = '';
 
@@ -2856,9 +2875,20 @@ let pendingRender = false;
 
 if (window.electronAPI) {
     const handleKataGoData = (dataPayload) => {
+        let dataArray = Array.isArray(dataPayload) ? dataPayload : [dataPayload];
+
+        // 1. Check for missing engine error first
+        for (let data of dataArray) {
+            if (data.error === "engine_missing") {
+                isEngineMissing = true;
+                isAnalysisPaused = true;
+                updateAnalysisUI();
+                return;
+            }
+        }
+
         if (isAnalysisPaused && !showingScoreEstimate) return;
 
-        let dataArray = Array.isArray(dataPayload) ? dataPayload : [dataPayload];
         let rawPath = getFullLinePath();
         let fullPath = rawPath.filter(n => n.gtpCoord !== 'resign');
 
@@ -3305,6 +3335,17 @@ document.getElementById('btn-save-as').addEventListener('click', (e) => {
 // ============================================================================
 const optionsOverlay = document.getElementById('options-modal-overlay');
 
+const aboutOverlay = document.getElementById('about-modal-overlay');
+
+document.getElementById('btn-about').addEventListener('click', (e) => {
+    e.stopPropagation();
+    aboutOverlay.classList.add('active');
+});
+
+document.getElementById('btn-about-close').addEventListener('click', () => {
+    aboutOverlay.classList.remove('active');
+});
+
 function bootEngine() {
     if (window.electronAPI && window.electronAPI.startEngine) {
         window.electronAPI.startEngine({
@@ -3379,6 +3420,7 @@ document.getElementById('options-modal-save').addEventListener('click', () => {
 
     skipSaveConfirm = !appSettings.optSaveConfirm;
 
+    isEngineMissing = false;
     bootEngine();
 
     optionsOverlay.classList.remove('active');
@@ -3390,6 +3432,13 @@ document.addEventListener('click', (e) => {
         const optBox = optionsOverlay.querySelector('.modal-box');
         if (!optBox.contains(e.target) && !e.target.closest('#btn-options-bottom')) {
             optionsOverlay.classList.remove('active');
+        }
+    }
+
+    if (aboutOverlay.classList.contains('active')) {
+        const aboutBox = aboutOverlay.querySelector('.modal-box');
+        if (!aboutBox.contains(e.target) && !e.target.closest('#btn-about')) {
+            aboutOverlay.classList.remove('active');
         }
     }
 });

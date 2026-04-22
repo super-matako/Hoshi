@@ -251,10 +251,10 @@
         .modal-btn-confirm { background: #ef4444; color: white; }
         .modal-btn-confirm:hover { background: #dc2626; }
 
-        /* Specialized Centered Options Modal */
-        #options-modal-overlay.active { display: flex !important; align-items: center !important; justify-content: center !important; background-color: rgba(20, 15, 10, 0.75) !important; pointer-events: auto !important; }
-        #options-modal-overlay .modal-box { position: relative !important; top: auto !important; left: auto !important; margin: 0 !important; transform: translateY(15px); }
-        #options-modal-overlay.active .modal-box { transform: translateY(0) !important; }
+        /* Specialized Centered Modals */
+        #options-modal-overlay.active, #about-modal-overlay.active { display: flex !important; align-items: center !important; justify-content: center !important; background-color: rgba(20, 15, 10, 0.75) !important; pointer-events: auto !important; }
+        #options-modal-overlay .modal-box, #about-modal-overlay .modal-box { position: relative !important; top: auto !important; left: auto !important; margin: 0 !important; transform: translateY(15px); }
+        #options-modal-overlay.active .modal-box, #about-modal-overlay.active .modal-box { transform: translateY(0) !important; }
 
         .options-section { margin-bottom: 20px; text-align: left; background: var(--header-bg); border: 1px solid var(--border-color); padding: 12px 15px; border-radius: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
         .options-heading { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0; margin-bottom: 12px; }
@@ -352,7 +352,7 @@
 
 <body>
   <header>
-        <h1 style="display: flex; align-items: center; margin: 0;">
+        <h1 id="btn-about" style="-webkit-app-region: no-drag; display: flex; align-items: center; margin: 0; cursor: pointer; transition: opacity 0.15s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'" title="About Hoshi">
             <svg viewBox="640 525 615 160" style="height: 1.35rem; width: auto; display: block;" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M648.72,678.13V530.99h22.61v147.14H648.72z M661.05,613.6v-21.37h87.13v21.37H661.05z M740.17,678.13V530.99h22.4v147.14H740.17z"/>
                 <path d="M864.29,681.42c-10.96,0-21.06-1.99-30.31-5.96c-9.25-3.97-17.3-9.49-24.15-16.54c-6.85-7.05-12.2-15.21-16.03-24.46c-3.84-9.25-5.75-19.21-5.75-29.9s1.92-20.65,5.75-29.9c3.83-9.25,9.18-17.4,16.03-24.46c6.85-7.05,14.9-12.57,24.15-16.54c9.25-3.97,19.35-5.96,30.31-5.96c10.82,0,20.86,1.99,30.11,5.96c9.25,3.98,17.33,9.49,24.25,16.54c6.92,7.06,12.26,15.21,16.03,24.46c3.77,9.25,5.65,19.21,5.65,29.9s-1.89,20.65-5.65,29.9c-3.77,9.25-9.11,17.4-16.03,24.46c-6.92,7.06-15,12.57-24.25,16.54C885.15,679.43,875.11,681.42,864.29,681.42z M864.29,660.04c10,0,19.01-2.33,27.02-6.99c8.02-4.66,14.42-11.16,19.21-19.52c4.79-8.36,7.19-18.01,7.19-28.98c0-11.1-2.4-20.79-7.19-29.08c-4.8-8.29-11.2-14.76-19.21-19.42c-8.01-4.66-17.02-6.99-27.02-6.99c-9.86,0-18.84,2.33-26.92,6.99c-8.09,4.66-14.52,11.13-19.32,19.42c-4.8,8.29-7.19,17.98-7.19,29.08c0,10.96,2.4,20.62,7.19,28.98c4.79,8.36,11.23,14.87,19.32,19.52C845.45,657.72,854.43,660.04,864.29,660.04z"/>
@@ -409,6 +409,12 @@
 
             <div class="panel">
                 <div id="analysis-box" class="analysis-box active">
+                    <div id="engine-missing-banner" style="display: none; width: 100%; padding: 12px 0; background: rgba(239, 68, 68, 0.15); border: 1px dashed #ef4444; border-radius: 4px; text-align: center; color: #fca5a5; font-weight: bold; font-size: 0.85rem; margin-bottom: 8px; flex-direction: column; gap: 4px;">
+                        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; margin: 0 auto;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        KataGo Engine Not Found<br>
+                        <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">Configure Engine Paths in Options</span>
+                    </div>
+
                     <div id="winrate-bar-container" style="width: 100%; height: 22px; display: flex; border-radius: 4px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--border-color); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);">
                         <div id="winrate-bar-black" style="background: #241c17; width: 50%; display: flex; align-items: center; justify-content: flex-start; padding-left: 8px; color: #f4ebd8; font-weight: bold; font-size: 0.75rem; white-space: nowrap; overflow: hidden; transition: width 0.3s ease;"></div>
                         <div id="winrate-bar-white" style="background: #e0d5c1; width: 50%; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: #241c17; font-weight: bold; font-size: 0.75rem; white-space: nowrap; overflow: hidden; transition: width 0.3s ease;"></div>
@@ -679,6 +685,35 @@
                   <button id="options-modal-save" class="modal-btn modal-btn-confirm" style="background: rgba(194, 155, 90, 0.4); color: var(--text-main); border: 1px solid var(--brass);">Save Changes</button>
               </div>
           </div>
+        </div>
+
+        <div id="about-modal-overlay" class="modal-overlay">
+            <div class="modal-box" style="width: 380px; text-align: center;">
+
+                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <svg viewBox="640 525 615 160" style="height: 2.2rem; width: auto; display: block;" fill="var(--text-main)" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M648.72,678.13V530.99h22.61v147.14H648.72z M661.05,613.6v-21.37h87.13v21.37H661.05z M740.17,678.13V530.99h22.4v147.14H740.17z"/>
+                        <path d="M864.29,681.42c-10.96,0-21.06-1.99-30.31-5.96c-9.25-3.97-17.3-9.49-24.15-16.54c-6.85-7.05-12.2-15.21-16.03-24.46c-3.84-9.25-5.75-19.21-5.75-29.9s1.92-20.65,5.75-29.9c3.83-9.25,9.18-17.4,16.03-24.46c6.85-7.05,14.9-12.57,24.15-16.54c9.25-3.97,19.35-5.96,30.31-5.96c10.82,0,20.86,1.99,30.11,5.96c9.25,3.98,17.33,9.49,24.25,16.54c6.92,7.06,12.26,15.21,16.03,24.46c3.77,9.25,5.65,19.21,5.65,29.9s-1.89,20.65-5.65,29.9c-3.77,9.25-9.11,17.4-16.03,24.46c-6.92,7.06-15,12.57-24.25,16.54C885.15,679.43,875.11,681.42,864.29,681.42z M864.29,660.04c10,0,19.01-2.33,27.02-6.99c8.02-4.66,14.42-11.16,19.21-19.52c4.79-8.36,7.19-18.01,7.19-28.98c0-11.1-2.4-20.79-7.19-29.08c-4.8-8.29-11.2-14.76-19.21-19.42c-8.01-4.66-17.02-6.99-27.02-6.99c-9.86,0-18.84,2.33-26.92,6.99c-8.09,4.66-14.52,11.13-19.32,19.42c-4.8,8.29-7.19,17.98-7.19,29.08c0,10.96,2.4,20.62,7.19,28.98c4.79,8.36,11.23,14.87,19.32,19.52C845.45,657.72,854.43,660.04,864.29,660.04z"/>
+                        <path d="M1006.71,681.42c-7.81,0-15.28-1.54-22.4-4.62c-7.13-3.08-13.39-7.64-18.8-13.67c-5.41-6.03-9.42-13.49-12.02-22.4l21.37-8.63c2.19,7.95,6.03,14.59,11.51,19.93c5.48,5.34,12.33,8.01,20.55,8.01c4.66,0,9.01-0.82,13.05-2.47c4.04-1.64,7.29-4.07,9.76-7.29c2.47-3.22,3.7-7.16,3.7-11.82c0-4.38-1.03-8.12-3.08-11.2c-2.06-3.08-5.34-5.89-9.86-8.43c-4.52-2.53-10.28-5.03-17.26-7.5l-9.25-3.29c-3.98-1.51-8.01-3.36-12.12-5.55c-4.11-2.19-7.91-4.9-11.41-8.12c-3.49-3.22-6.27-7.02-8.32-11.41c-2.05-4.38-3.08-9.45-3.08-15.21c0-7.4,1.95-14.11,5.86-20.14c3.9-6.03,9.32-10.86,16.24-14.49c6.92-3.63,14.97-5.45,24.15-5.45c9.45,0,17.37,1.68,23.74,5.03c6.37,3.36,11.37,7.37,15,12.02c3.63,4.66,6.13,9.11,7.5,13.36l-20.34,8.63c-0.82-2.88-2.3-5.68-4.42-8.43c-2.13-2.74-4.93-5.04-8.43-6.88c-3.49-1.85-7.78-2.77-12.84-2.77c-4.39,0-8.39,0.82-12.02,2.47c-3.63,1.64-6.54,3.87-8.73,6.68c-2.19,2.81-3.29,6.06-3.29,9.76c0,5.34,2.19,9.69,6.58,13.05c4.38,3.36,10.75,6.41,19.11,9.14l9.45,3.29c4.79,1.64,9.52,3.6,14.18,5.86c4.66,2.26,8.9,5.14,12.74,8.63c3.83,3.49,6.88,7.74,9.14,12.74c2.26,5,3.39,10.93,3.39,17.78c0,7.54-1.47,14.08-4.42,19.63c-2.95,5.55-6.85,10.07-11.71,13.56c-4.86,3.49-10.21,6.06-16.03,7.71C1018.04,680.6,1012.32,681.42,1006.71,681.42z"/>
+                        <path d="M1080.69,678.13V530.99h22.61v147.14H1080.69z M1093.02,613.6v-21.37h87.13v21.37H1093.02z M1172.14,678.13V530.99h22.4v147.14H1172.14z"/>
+                        <path d="M1227.42,678.13V530.99h22.61v147.14H1227.42z"/>
+                        <path d="M821.43,604.72c4.46-0.81,8.94-1.54,13.38-2.46c7.49-1.55,14.83-3.54,20-9.8c3.81-4.62,5.57-10.17,6.68-15.93c1.09-5.6,2.02-11.24,2.96-16.53c1.13,6.07,2.12,12.52,3.56,18.86c1.61,7.08,4.38,13.64,10.84,17.83c4.66,3.02,9.9,4.55,15.31,5.57c4.41,0.83,8.83,1.62,13.35,2.91c-0.75,0.14-1.5,0.28-2.25,0.44c-5.86,1.22-11.76,2.3-17.58,3.7c-11.48,2.76-17.33,10.8-19.7,21.8c-1.36,6.34-2.4,12.75-3.52,18.79c-0.95-5.39-1.86-11.13-3-16.82c-1.12-5.56-2.82-10.95-6.48-15.46c-5.19-6.39-12.56-8.47-20.16-10.02c-4.44-0.91-8.91-1.63-13.37-2.44C821.44,605.01,821.44,604.87,821.43,604.72z"/>
+                    </svg>
+                </div>
+
+                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 25px;">
+                    I wish I could buy the board and stones whose photos I used for the textures...<br><br>
+                    Version 1.0.5<br>
+                    Copyright &copy; 2026 The Hoshi Project<br><br>
+                    <span style="font-size: 0.8rem; opacity: 0.8;">
+                        Licensed under the PolyForm Noncommercial License 1.0.0.<br>
+                        See the included LICENSE file for full details.
+                    </span>
+                </p>
+                <div class="modal-actions" style="justify-content: center;">
+                    <button id="btn-about-close" class="modal-btn modal-btn-cancel" style="width: 120px;">Close</button>
+                </div>
+            </div>
         </div>
 
     <script src="./renderer.js"></script>

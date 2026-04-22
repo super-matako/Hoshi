@@ -9,6 +9,9 @@
   },
   "build": {
     "appId": "com.hoshi.goapp",
+    "extraFiles": [
+      "LICENSE"
+    ],
     "extraResources": [
       {
         "from": "KataGo",
@@ -17,7 +20,7 @@
       }
     ],
     "win": {
-      "target": "portable",
+      "target": "dir",
       "icon": "icon.ico"
     },
     "directories": {

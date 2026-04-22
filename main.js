@@ -57,6 +57,15 @@ function startKataGo(customPaths = {}) {
     const modelPath = (customPaths.net && customPaths.net.trim() !== '') ? customPaths.net : defaultNet;
     const configPath = (customPaths.cfg && customPaths.cfg.trim() !== '') ? customPaths.cfg : defaultCfg;
 
+    // Check if the executable actually exists before trying to spawn it
+    if (!fs.existsSync(katagoPath)) {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            // Sneak an error object through the standard data pipe
+            mainWindow.webContents.send('analysis-data-batch', [{ error: "engine_missing" }]);
+        }
+        return;
+    }
+
     try {
         // Boot the KataGo process in analysis mode
         katagoProcess = spawn(katagoPath, [
