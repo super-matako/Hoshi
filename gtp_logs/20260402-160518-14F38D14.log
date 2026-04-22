@@ -1,0 +1,70 @@
+2026-04-02 16:05:18+0300: Running with following config:
+allowResignation = true
+lagBuffer = 1.0
+logAllGTPCommunication = true
+logDir = gtp_logs
+logSearchInfo = true
+logSearchInfoForChosenMove = false
+logToStderr = false
+maxTimePondering = 60.0
+maxVisits = 500
+numSearchThreads = 20
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.90
+rules = tromp-taylor
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+
+2026-04-02 16:05:18+0300: GTP Engine starting...
+2026-04-02 16:05:18+0300: KataGo v1.16.4
+2026-04-02 16:05:18+0300: Using TrompTaylor rules initially, unless GTP/GUI overrides this
+2026-04-02 16:05:18+0300: Using 20 CPU thread(s) for search
+2026-04-02 16:05:18+0300: nnRandSeed0 = 8789733685102571051
+2026-04-02 16:05:18+0300: After dedups: nnModelFile0 = D:\Projects\Hoshi\KataGo\default_model.bin.gz useFP16 auto useNHWC auto
+2026-04-02 16:05:18+0300: Initializing neural net buffer to be size 19 * 19 exactly
+2026-04-02 16:05:22+0300: Cuda backend thread 0: Found GPU NVIDIA GeForce RTX 2060 memory 6441992192 compute capability major 7 minor 5
+2026-04-02 16:05:22+0300: Cuda backend thread 0: Model version 15 useFP16 = true useNHWC = true
+2026-04-02 16:05:22+0300: Cuda backend thread 0: Model name: zhizi_hzy_b28_muonfd2
+2026-04-02 16:05:23+0300: Loaded neural net with nnXLen 19 nnYLen 19
+2026-04-02 16:05:23+0300: Initializing board with boardXSize 19 boardYSize 19
+2026-04-02 16:05:23+0300: Loaded config D:\Projects\Hoshi\KataGo\default_gtp.cfg
+2026-04-02 16:05:23+0300: Loaded model D:\Projects\Hoshi\KataGo\default_model.bin.gz
+2026-04-02 16:05:23+0300: Model name: zhizi_hzy_b28_muonfd2
+2026-04-02 16:05:23+0300: GTP ready, beginning main protocol loop
+2026-04-02 16:08:39+0300: Controller: play b Q16
+2026-04-02 16:08:39+0300: = 
+2026-04-02 16:08:40+0300: Controller: play w Q15
+2026-04-02 16:08:40+0300: = 
+2026-04-02 16:08:40+0300: Controller: play b R16
+2026-04-02 16:08:40+0300: = 
+2026-04-02 16:08:41+0300: Controller: play w Q17
+2026-04-02 16:08:41+0300: = 
+2026-04-02 16:08:41+0300: Controller: play b P16
+2026-04-02 16:08:41+0300: = 
+2026-04-02 16:08:42+0300: Controller: play w R15
+2026-04-02 16:08:42+0300: = 
+2026-04-02 16:08:43+0300: Controller: play b R17
+2026-04-02 16:08:43+0300: = 
+2026-04-02 16:08:43+0300: Controller: play w P17
+2026-04-02 16:08:43+0300: = 
+2026-04-02 16:08:44+0300: Controller: play b P18
+2026-04-02 16:08:44+0300: = 
+2026-04-02 16:08:44+0300: Controller: play w Q18
+2026-04-02 16:08:44+0300: = 
+2026-04-02 16:08:45+0300: Controller: play b Q19
+2026-04-02 16:08:45+0300: = 
+2026-04-02 16:08:45+0300: Controller: play w R18
+2026-04-02 16:08:45+0300: = 
+2026-04-02 16:08:46+0300: Controller: play b S18
+2026-04-02 16:08:46+0300: = 
+2026-04-02 16:08:48+0300: Controller: play w R19
+2026-04-02 16:08:48+0300: = 
+2026-04-02 16:08:49+0300: Controller: play b O17
+2026-04-02 16:08:49+0300: = 
+2026-04-02 16:08:49+0300: Controller: play w S19
+2026-04-02 16:08:49+0300: = 
+2026-04-02 16:08:50+0300: Controller: play b T19
+2026-04-02 16:08:50+0300: = 

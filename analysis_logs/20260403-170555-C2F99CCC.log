@@ -1,0 +1,38 @@
+2026-04-03 17:05:55+0300: Running with following config:
+logDir = analysis_logs
+maxVisits = 500
+nnCacheSizePowerOfTwo = 23
+nnMaxBatchSize = 64
+nnMutexPoolSizePowerOfTwo = 17
+nnRandomize = true
+numAnalysisThreads = 2
+numSearchThreads = 16
+reportAnalysisWinratesAs = BLACK
+
+2026-04-03 17:05:55+0300: Analysis Engine starting...
+2026-04-03 17:05:55+0300: KataGo v1.16.4
+2026-04-03 17:05:55+0300: nnRandSeed0 = 11278165379170811870
+2026-04-03 17:05:55+0300: After dedups: nnModelFile0 = D:\Projects\Hoshi\KataGo\default_model.bin.gz useFP16 auto useNHWC auto
+2026-04-03 17:05:55+0300: Initializing neural net buffer to be size 19 * 19 allowing smaller boards
+2026-04-03 17:05:59+0300: Cuda backend thread 0: Found GPU NVIDIA GeForce RTX 2060 memory 6441992192 compute capability major 7 minor 5
+2026-04-03 17:05:59+0300: Cuda backend thread 0: Model version 15 useFP16 = true useNHWC = true
+2026-04-03 17:05:59+0300: Cuda backend thread 0: Model name: zhizi_hzy_b28_muonfd2
+2026-04-03 17:06:01+0300: Loaded config D:\Projects\Hoshi\KataGo\analysis_example.cfg
+2026-04-03 17:06:01+0300: Loaded model D:\Projects\Hoshi\KataGo\default_model.bin.gz
+2026-04-03 17:06:01+0300: Analyzing up to 2 positions at a time in parallel
+2026-04-03 17:06:01+0300: Started, ready to begin handling requests
+2026-04-03 17:06:01+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225160000"}
+2026-04-03 17:06:06+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225166192"}
+2026-04-03 17:06:11+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225171219"}
+2026-04-03 17:06:15+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225175251"}
+2026-04-03 17:06:20+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225180520"}
+2026-04-03 17:06:22+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225182114"}
+2026-04-03 17:06:22+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225182377"}
+2026-04-03 17:06:22+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225182713"}
+2026-04-03 17:06:23+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225183247"}
+2026-04-03 17:06:39+0300: Error: {"error":"Could not parse board location: QNaN","field":"moves","id":"analysis_1775225199265"}
+2026-04-03 17:06:40+0300: D:\Projects\Hoshi\KataGo\default_model.bin.gz
+2026-04-03 17:06:40+0300: NN rows: 0
+2026-04-03 17:06:40+0300: NN batches: 0
+2026-04-03 17:06:40+0300: NN avg batch size: -nan(ind)
+2026-04-03 17:06:40+0300: GPU -1 finishing, processed 0 rows 0 batches

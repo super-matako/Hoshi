@@ -1,0 +1,31 @@
+{
+  "name": "Hoshi",
+  "productName": "Hoshi",
+  "version": "1.0.5",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.hoshi.goapp",
+    "extraResources": [
+      {
+        "from": "KataGo",
+        "to": "KataGo",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "devDependencies": {
+    "electron": "^...",
+    "electron-builder": "^..."
+  }
+}

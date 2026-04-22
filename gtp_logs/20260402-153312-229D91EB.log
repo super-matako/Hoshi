@@ -1,0 +1,172 @@
+2026-04-02 15:33:12+0300: Running with following config:
+allowResignation = true
+lagBuffer = 1.0
+logAllGTPCommunication = true
+logDir = gtp_logs
+logSearchInfo = true
+logSearchInfoForChosenMove = false
+logToStderr = false
+maxTimePondering = 60.0
+maxVisits = 500
+numSearchThreads = 20
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.90
+rules = tromp-taylor
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+
+2026-04-02 15:33:12+0300: GTP Engine starting...
+2026-04-02 15:33:12+0300: KataGo v1.16.4
+2026-04-02 15:33:12+0300: Using TrompTaylor rules initially, unless GTP/GUI overrides this
+2026-04-02 15:33:12+0300: Using 20 CPU thread(s) for search
+2026-04-02 15:33:12+0300: nnRandSeed0 = 14743129604934985029
+2026-04-02 15:33:12+0300: After dedups: nnModelFile0 = D:\Projects\Hoshi\KataGo\default_model.bin.gz useFP16 auto useNHWC auto
+2026-04-02 15:33:12+0300: Initializing neural net buffer to be size 19 * 19 exactly
+2026-04-02 15:33:16+0300: Cuda backend thread 0: Found GPU NVIDIA GeForce RTX 2060 memory 6441992192 compute capability major 7 minor 5
+2026-04-02 15:33:16+0300: Cuda backend thread 0: Model version 15 useFP16 = true useNHWC = true
+2026-04-02 15:33:16+0300: Cuda backend thread 0: Model name: zhizi_hzy_b28_muonfd2
+2026-04-02 15:33:17+0300: Loaded neural net with nnXLen 19 nnYLen 19
+2026-04-02 15:33:17+0300: Initializing board with boardXSize 19 boardYSize 19
+2026-04-02 15:33:17+0300: Loaded config D:\Projects\Hoshi\KataGo\default_gtp.cfg
+2026-04-02 15:33:17+0300: Loaded model D:\Projects\Hoshi\KataGo\default_model.bin.gz
+2026-04-02 15:33:17+0300: Model name: zhizi_hzy_b28_muonfd2
+2026-04-02 15:33:17+0300: GTP ready, beginning main protocol loop
+2026-04-02 15:33:17+0300: Controller: play b Q16
+2026-04-02 15:33:17+0300: = 
+2026-04-02 15:33:18+0300: Controller: play w D4
+2026-04-02 15:33:18+0300: = 
+2026-04-02 15:33:19+0300: Controller: play b Q3
+2026-04-02 15:33:19+0300: = 
+2026-04-02 15:33:21+0300: Controller: play w D16
+2026-04-02 15:33:21+0300: = 
+2026-04-02 15:33:23+0300: Controller: play b R9
+2026-04-02 15:33:23+0300: = 
+2026-04-02 15:33:23+0300: Controller: play w D10
+2026-04-02 15:33:23+0300: = 
+2026-04-02 15:33:31+0300: Controller: play b Q10
+2026-04-02 15:33:31+0300: = 
+2026-04-02 15:33:37+0300: Controller: play b P9
+2026-04-02 15:33:37+0300: = 
+2026-04-02 15:33:37+0300: Controller: play w N7
+2026-04-02 15:33:37+0300: = 
+2026-04-02 15:33:38+0300: Controller: play b J9
+2026-04-02 15:33:38+0300: = 
+2026-04-02 15:33:38+0300: Controller: play w J10
+2026-04-02 15:33:38+0300: = 
+2026-04-02 15:33:38+0300: Controller: play b K12
+2026-04-02 15:33:38+0300: = 
+2026-04-02 15:33:38+0300: Controller: play w J13
+2026-04-02 15:33:38+0300: = 
+2026-04-02 15:33:40+0300: Controller: play w Q10
+2026-04-02 15:33:40+0300: ? illegal move
+2026-04-02 15:33:40+0300: Controller: play b O12
+2026-04-02 15:33:40+0300: = 
+2026-04-02 15:33:40+0300: Controller: play w J14
+2026-04-02 15:33:40+0300: = 
+2026-04-02 15:33:40+0300: Controller: play b F10
+2026-04-02 15:33:40+0300: = 
+2026-04-02 15:33:41+0300: Controller: play w H7
+2026-04-02 15:33:41+0300: = 
+2026-04-02 15:33:41+0300: Controller: play b L4
+2026-04-02 15:33:41+0300: = 
+2026-04-02 15:33:41+0300: Controller: play w O5
+2026-04-02 15:33:41+0300: = 
+2026-04-02 15:33:41+0300: Controller: play b Q6
+2026-04-02 15:33:41+0300: = 
+2026-04-02 15:33:43+0300: Controller: play w N13
+2026-04-02 15:33:43+0300: = 
+2026-04-02 15:33:43+0300: Controller: play b N14
+2026-04-02 15:33:43+0300: = 
+2026-04-02 15:33:43+0300: Controller: play w O15
+2026-04-02 15:33:43+0300: = 
+2026-04-02 15:33:43+0300: Controller: play b O16
+2026-04-02 15:33:43+0300: = 
+2026-04-02 15:33:44+0300: Controller: play w O13
+2026-04-02 15:33:44+0300: = 
+2026-04-02 15:33:44+0300: Controller: play b O14
+2026-04-02 15:33:44+0300: = 
+2026-04-02 15:33:46+0300: Controller: play w P13
+2026-04-02 15:33:46+0300: = 
+2026-04-02 15:33:46+0300: Controller: play b P15
+2026-04-02 15:33:46+0300: = 
+2026-04-02 15:33:47+0300: Controller: play w N12
+2026-04-02 15:33:47+0300: = 
+2026-04-02 15:33:48+0300: Controller: play b N15
+2026-04-02 15:33:48+0300: = 
+2026-04-02 15:34:03+0300: Controller: play b O11
+2026-04-02 15:34:03+0300: = 
+2026-04-02 15:34:03+0300: Controller: play w P13
+2026-04-02 15:34:03+0300: ? illegal move
+2026-04-02 15:34:03+0300: Controller: play b Q13
+2026-04-02 15:34:03+0300: = 
+2026-04-02 15:34:03+0300: Controller: play w R14
+2026-04-02 15:34:03+0300: = 
+2026-04-02 15:34:05+0300: Controller: play w R11
+2026-04-02 15:34:05+0300: = 
+2026-04-02 15:34:06+0300: Controller: play w R9
+2026-04-02 15:34:06+0300: ? illegal move
+2026-04-02 15:34:07+0300: Controller: play w S8
+2026-04-02 15:34:07+0300: = 
+2026-04-02 15:34:09+0300: Controller: play w N8
+2026-04-02 15:34:09+0300: = 
+2026-04-02 15:34:10+0300: Controller: play w P8
+2026-04-02 15:34:10+0300: = 
+2026-04-02 15:34:11+0300: Controller: play w P8
+2026-04-02 15:34:11+0300: ? illegal move
+2026-04-02 15:35:58+0300: Controller: play b N10
+2026-04-02 15:35:58+0300: = 
+2026-04-02 15:35:58+0300: Controller: play w L12
+2026-04-02 15:35:58+0300: = 
+2026-04-02 15:35:58+0300: Controller: play b F6
+2026-04-02 15:35:58+0300: = 
+2026-04-02 15:35:58+0300: Controller: play w K4
+2026-04-02 15:35:58+0300: = 
+2026-04-02 15:35:59+0300: Controller: play b N7
+2026-04-02 15:35:59+0300: ? illegal move
+2026-04-02 15:35:59+0300: Controller: play w M8
+2026-04-02 15:35:59+0300: = 
+2026-04-02 15:35:59+0300: Controller: play b J10
+2026-04-02 15:35:59+0300: ? illegal move
+2026-04-02 15:35:59+0300: Controller: play w K13
+2026-04-02 15:35:59+0300: = 
+2026-04-02 15:35:59+0300: Controller: play b L15
+2026-04-02 15:35:59+0300: = 
+2026-04-02 15:35:59+0300: Controller: play w M15
+2026-04-02 15:35:59+0300: = 
+2026-04-02 15:35:59+0300: Controller: play b N14
+2026-04-02 15:35:59+0300: ? illegal move
+2026-04-02 15:36:00+0300: Controller: play w O11
+2026-04-02 15:36:00+0300: ? illegal move
+2026-04-02 15:36:00+0300: Controller: play b O10
+2026-04-02 15:36:00+0300: = 
+2026-04-02 15:36:01+0300: Controller: play w O9
+2026-04-02 15:36:01+0300: = 
+2026-04-02 15:36:02+0300: Controller: play b P10
+2026-04-02 15:36:02+0300: = 
+2026-04-02 15:36:02+0300: Controller: play w P11
+2026-04-02 15:36:02+0300: = 
+2026-04-02 15:36:03+0300: Controller: play b Q11
+2026-04-02 15:36:03+0300: = 
+2026-04-02 15:36:05+0300: Controller: play w Q10
+2026-04-02 15:36:05+0300: ? illegal move
+2026-04-02 15:36:06+0300: Controller: play b P9
+2026-04-02 15:36:06+0300: ? illegal move
+2026-04-02 15:36:06+0300: Controller: play w Q9
+2026-04-02 15:36:06+0300: = 
+2026-04-02 15:36:07+0300: Controller: play b Q8
+2026-04-02 15:36:07+0300: = 
+2026-04-02 15:36:09+0300: Controller: play w P8
+2026-04-02 15:36:09+0300: ? illegal move
+2026-04-02 15:36:12+0300: Controller: play b R10
+2026-04-02 15:36:12+0300: = 
+2026-04-02 15:36:13+0300: Controller: play w O8
+2026-04-02 15:36:13+0300: = 
+2026-04-02 15:36:27+0300: Controller: clear_board
+2026-04-02 15:36:27+0300: = 
+2026-04-02 15:36:27+0300: Controller: clear_board
+2026-04-02 15:36:27+0300: = 
+2026-04-02 15:36:32+0300: GPU -1 finishing, processed 0 rows 0 batches
+2026-04-02 15:36:32+0300: All cleaned up, quitting
