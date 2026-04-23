@@ -1990,6 +1990,19 @@ document.getElementById('btn-score').addEventListener('click', () => {
         return;
     }
 
+    // Intercept click if engine is missing
+    if (isEngineMissing) {
+        document.getElementById('score-popup-text').innerHTML =
+            `<div style="color: #ef4444; margin-bottom: 8px;">` +
+            `<svg viewBox="0 0 24 24" style="width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>` +
+            `</div>` +
+            `<strong style="font-size: 1.05rem; color: var(--text-main);">Engine Required</strong><br><br>` +
+            `<span style="color: var(--text-muted); font-size: 0.9rem;">KataGo is required to calculate score estimates.<br>Please configure your engine paths in the Options menu.</span>`;
+
+        document.getElementById('score-popup').style.display = 'block';
+        return;
+    }
+
     showingScoreEstimate = true;
     document.getElementById('btn-score').classList.add('active-action');
 
@@ -2054,8 +2067,7 @@ function updateScorePopup() {
         `<div style="display: flex; justify-content: space-between; text-align: left; margin-bottom: 10px; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 10px 0;">` +
         `<div style="flex: 1;"><strong>Black</strong><br>Territory: ${bTerritory}<br>Captures: ${currentNode.capturesBlack}<br>Dead W Stones: ${wDead}<br><br><strong>Total: ${totalBlack}</strong></div>` +
         `<div style="flex: 1; border-left: 1px solid var(--border-color); padding-left: 10px;"><strong>White</strong><br>Territory: ${wTerritory}<br>Captures: ${currentNode.capturesWhite}<br>Dead B Stones: ${bDead}<br>Komi: ${currentKomi}<br><strong>Total: ${totalWhite}</strong></div>` +
-        `</div>` +
-        `<span style="color: var(--text-muted); font-size: 0.8rem;">(Calculated by KataGo neural net)</span>`;
+        `</div>`;
 
     popup.style.display = 'block';
 }
