@@ -42,83 +42,103 @@ let stoneCache = { black: null, white: [null, null, null], cellWidth: 0 };
  * Pre-renders stones onto off-screen canvases so they can be rapidly drawn
  * during the main render loop without recalculating shadows and gradients.
  */
-function buildStoneCache() {
-    if (CELL_WIDTH <= 0) return;
-    stoneCache.cellWidth = CELL_WIDTH;
+ function buildStoneCache() {
+     if (CELL_WIDTH <= 0) return;
+     stoneCache.cellWidth = CELL_WIDTH;
 
-    const createCachedStone = (color, skinIndex) => {
-        const cacheCanvas = document.createElement('canvas');
-        // Add padding so the shadow blur effect doesn't get clipped at the edge of the canvas
-        const padding = CELL_WIDTH * 0.5;
-        cacheCanvas.width = CELL_WIDTH + (padding * 2);
-        cacheCanvas.height = CELL_HEIGHT + (padding * 2);
-        const cctx = cacheCanvas.getContext('2d');
+     const createCachedStone = (color, skinIndex) => {
+         const padding = CELL_WIDTH * 0.5;
+         const cacheWidth = CELL_WIDTH + (padding * 2);
+         const cacheHeight = CELL_HEIGHT + (padding * 2);
+         const cx = cacheWidth / 2;
+         const cy = cacheHeight / 2;
 
-        const cx = cacheCanvas.width / 2;
-        const cy = cacheCanvas.height / 2;
+         // Authentic Japanese Go equipment ratios
+         const radiusMultiplier = color === 'black' ? 0.511 : 0.504;
+         const radiusX = CELL_WIDTH * radiusMultiplier;
+         const radiusY = CELL_WIDTH * radiusMultiplier;
 
-        const radiusMultiplier = color === 'black' ? 0.495 : 0.485;
-        const radiusX = CELL_WIDTH * radiusMultiplier;
-        const radiusY = CELL_HEIGHT * radiusMultiplier;
+         let relativeThicknessMultiplier = color === 'black' ? THEME.stoneBlackStrokeMultiplier : THEME.stoneWhiteStrokeMultiplier;
+         let actualThickness = CELL_WIDTH * relativeThicknessMultiplier;
 
-        let imgToDraw = null;
-        if (color === 'black' && textures.black.complete && textures.black.naturalWidth > 0) {
-            imgToDraw = textures.black;
-        } else if (color === 'white') {
-            if (textures.white[skinIndex].complete && textures.white[skinIndex].naturalWidth > 0) {
-                imgToDraw = textures.white[skinIndex];
-            }
-        }
+         // --- LAYER 1: SHADOW & STROKE CANVAS ---
+         const strokeCanvas = document.createElement('canvas');
+         strokeCanvas.width = cacheWidth;
+         strokeCanvas.height = cacheHeight;
+         const sctx = strokeCanvas.getContext('2d');
 
-        let relativeThicknessMultiplier = color === 'black' ? THEME.stoneBlackStrokeMultiplier : THEME.stoneWhiteStrokeMultiplier;
-        let actualThickness = CELL_WIDTH * relativeThicknessMultiplier;
+         sctx.shadowColor = THEME.stoneShadowColor;
+         sctx.shadowOffsetX = CELL_WIDTH * THEME.stoneShadowOffsetXMultiplier;
+         sctx.shadowOffsetY = CELL_HEIGHT * THEME.stoneShadowOffsetYMultiplier;
+         sctx.shadowBlur = CELL_WIDTH * THEME.stoneShadowBlurMultiplier;
 
-        cctx.shadowColor = THEME.stoneShadowColor;
-        cctx.shadowOffsetX = CELL_WIDTH * THEME.stoneShadowOffsetXMultiplier;
-        cctx.shadowOffsetY = CELL_HEIGHT * THEME.stoneShadowOffsetYMultiplier;
-        cctx.shadowBlur = CELL_WIDTH * THEME.stoneShadowBlurMultiplier;
+         // Draw a solid base to cast the shadow accurately
+         sctx.beginPath();
+         sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+         sctx.fillStyle = color;
+         sctx.fill();
 
-        if (imgToDraw) {
-            cctx.drawImage(imgToDraw, cx - radiusX, cy - radiusY, radiusX * 2, radiusY * 2);
-        } else {
-            // Fallback to flat colors if images are missing
-            cctx.beginPath();
-            cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-            cctx.fillStyle = color;
-            cctx.fill();
-        }
+         // Turn off shadow for the stroke itself
+         sctx.shadowColor = 'rgba(0,0,0,0)';
+         sctx.shadowOffsetX = 0;
+         sctx.shadowOffsetY = 0;
+         sctx.shadowBlur = 0;
 
-        // Reset shadow so the highlight ring isn't shadowed
-        cctx.shadowColor = 'rgba(0,0,0,0)';
-        cctx.shadowOffsetX = 0;
-        cctx.shadowOffsetY = 0;
-        cctx.shadowBlur = 0;
+         if (actualThickness > 0 && radiusX > 0 && radiusY > 0) {
+             let gradient = sctx.createLinearGradient(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY);
+             if (color === 'black') {
+                 gradient.addColorStop(0, THEME.stoneBlackStrokeTopLeft);
+                 gradient.addColorStop(1, THEME.stoneBlackStrokeBottomRight);
+             } else {
+                 gradient.addColorStop(0, THEME.stoneWhiteStrokeTopLeft);
+                 gradient.addColorStop(1, THEME.stoneWhiteStrokeBottomRight);
+             }
 
-        if (actualThickness > 0 && radiusX > 0 && radiusY > 0) {
-            let gradient = cctx.createLinearGradient(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY);
+             sctx.beginPath();
+             sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+             sctx.lineWidth = actualThickness;
+             sctx.strokeStyle = gradient;
+             sctx.stroke();
+         }
 
-            if (color === 'black') {
-                gradient.addColorStop(0, THEME.stoneBlackStrokeTopLeft);
-                gradient.addColorStop(1, THEME.stoneBlackStrokeBottomRight);
-            } else {
-                gradient.addColorStop(0, THEME.stoneWhiteStrokeTopLeft);
-                gradient.addColorStop(1, THEME.stoneWhiteStrokeBottomRight);
-            }
+         // --- LAYER 2: CORE TEXTURE CANVAS ---
+         const coreCanvas = document.createElement('canvas');
+         coreCanvas.width = cacheWidth;
+         coreCanvas.height = cacheHeight;
+         const cctx = coreCanvas.getContext('2d');
 
-            cctx.beginPath();
-            cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-            cctx.lineWidth = actualThickness;
-            cctx.strokeStyle = gradient;
-            cctx.stroke();
-        }
-        return cacheCanvas;
-    };
+         let imgToDraw = null;
+         if (color === 'black' && textures.black.complete && textures.black.naturalWidth > 0) {
+             imgToDraw = textures.black;
+         } else if (color === 'white') {
+             if (textures.white[skinIndex].complete && textures.white[skinIndex].naturalWidth > 0) {
+                 imgToDraw = textures.white[skinIndex];
+             }
+         }
 
-    stoneCache.black = createCachedStone('black', 0);
-    stoneCache.white[0] = createCachedStone('white', 0);
-    stoneCache.white[1] = createCachedStone('white', 1);
-    stoneCache.white[2] = createCachedStone('white', 2);
-}
+         if (imgToDraw) {
+             cctx.save();
+             cctx.beginPath();
+             cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+             cctx.clip(); // Keeps the texture perfectly round
+             cctx.drawImage(imgToDraw, cx - radiusX, cy - radiusY, radiusX * 2, radiusY * 2);
+             cctx.restore();
+         } else {
+             cctx.beginPath();
+             cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+             cctx.fillStyle = color;
+             cctx.fill();
+         }
+
+         // Return both layers as a combined object
+         return { stroke: strokeCanvas, core: coreCanvas };
+     };
+
+     stoneCache.black = createCachedStone('black', 0);
+     stoneCache.white[0] = createCachedStone('white', 0);
+     stoneCache.white[1] = createCachedStone('white', 1);
+     stoneCache.white[2] = createCachedStone('white', 2);
+ }
 
 // ============================================================================
 // 3. STATE HASHING & RULES ENGINE
@@ -464,22 +484,82 @@ function updateTreeUI() {
     let logicalWidth = Math.max((maxTreeCol + 2) * TREE_CELL_SIZE, treeContainer.clientWidth);
     let logicalHeight = Math.max((maxTreeRow + 2) * TREE_CELL_SIZE + TREE_PADDING_TOP, treeContainer.clientHeight);
 
-    const dpr = window.devicePixelRatio || 1;
-    treeCanvas.width = logicalWidth * dpr;
-    treeCanvas.height = logicalHeight * dpr;
-    treeCanvas.style.width = logicalWidth + 'px';
-    treeCanvas.style.height = logicalHeight + 'px';
+    // --- CANVAS VIRTUALIZATION FIX ---
+    let treeSpacer = document.getElementById('tree-spacer');
+    if (!treeSpacer) {
+        // 1. Create a massive invisible div to force the scrollbars to appear naturally
+        treeSpacer = document.createElement('div');
+        treeSpacer.id = 'tree-spacer';
+        treeContainer.appendChild(treeSpacer);
 
+        // 2. Pin the actual drawing canvas to the viewport
+        treeCanvas.style.position = 'sticky';
+        treeCanvas.style.top = '0px';
+        treeCanvas.style.left = '0px';
+
+        // 3. Force the canvas to redraw dynamically whenever the user scrolls
+        treeContainer.addEventListener('scroll', () => renderTreeCanvas());
+    }
+
+    // Stretch the invisible spacer to the true massive size of the SGF tree
+    treeSpacer.style.width = logicalWidth + 'px';
+    treeSpacer.style.height = logicalHeight + 'px';
+
+    renderTreeCanvas();
+
+    if (!isDraggingTree) {
+        let pos = treeLayout.get(currentNode);
+        if (pos) {
+            const targetX = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
+            const targetY = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
+
+            treeContainer.scrollTo({
+                left: targetX - (treeContainer.clientWidth / 2),
+                top: targetY - (treeContainer.clientHeight / 2),
+                behavior: 'smooth'
+            });
+        }
+    }
+}
+
+// New drawing loop that strictly renders only what is visible on the screen
+function renderTreeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const viewW = treeContainer.clientWidth;
+    const viewH = treeContainer.clientHeight;
+
+    // Lock the canvas hardware size to the small viewport window
+    treeCanvas.width = viewW * dpr;
+    treeCanvas.height = viewH * dpr;
+    treeCanvas.style.width = viewW + 'px';
+    treeCanvas.style.height = viewH + 'px';
+
+    treeCtx.setTransform(1, 0, 0, 1, 0, 0);
     treeCtx.scale(dpr, dpr);
-    treeCtx.clearRect(0, 0, logicalWidth, logicalHeight);
+    treeCtx.clearRect(0, 0, viewW, viewH);
+
+    // Offset the drawing matrix by the container's scroll position
+    const scrollX = treeContainer.scrollLeft;
+    const scrollY = treeContainer.scrollTop;
+    treeCtx.translate(-scrollX, -scrollY);
 
     treeCtx.strokeStyle = THEME.treeBranchColor;
     treeCtx.lineWidth = 2;
+
+    // Establish bounds to "cull" off-screen nodes (drastically prevents lag)
+    const minCol = Math.floor(scrollX / TREE_CELL_SIZE) - 1;
+    const maxCol = Math.ceil((scrollX + viewW) / TREE_CELL_SIZE) + 1;
+    const minRow = Math.floor((scrollY - TREE_PADDING_TOP) / TREE_CELL_SIZE) - 1;
+    const maxRow = Math.ceil((scrollY + viewH - TREE_PADDING_TOP) / TREE_CELL_SIZE) + 1;
 
     // Phase 1: Draw interconnecting branch lines
     for (let [node, pos] of treeLayout.entries()) {
         if (node.parent) {
             let parentPos = treeLayout.get(node.parent);
+
+            // CULLING: Skip drawing this line if both ends are outside the viewport bounds
+            if (Math.max(pos.col, parentPos.col) < minCol || Math.min(pos.col, parentPos.col) > maxCol) continue;
+            if (Math.max(pos.row, parentPos.row) < minRow || Math.min(pos.row, parentPos.row) > maxRow) continue;
 
             let startX = parentPos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
             let startY = parentPos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
@@ -492,7 +572,6 @@ function updateTreeUI() {
             if (pos.row === parentPos.row) {
                 treeCtx.lineTo(endX, endY);
             } else {
-                // Creates a 90-degree corner for branches that step down a row
                 treeCtx.lineTo(startX + (TREE_CELL_SIZE / 2), startY);
                 treeCtx.lineTo(startX + (TREE_CELL_SIZE / 2), endY);
                 treeCtx.lineTo(endX, endY);
@@ -505,10 +584,12 @@ function updateTreeUI() {
     for (let [node, pos] of treeLayout.entries()) {
         if (node === rootNode) continue;
 
+        // CULLING: Skip drawing this stone if it is off-screen
+        if (pos.col < minCol || pos.col > maxCol || pos.row < minRow || pos.row > maxRow) continue;
+
         let x = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
         let y = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
 
-        // Draw active node highlight aura
         if (node === currentNode) {
             treeCtx.fillStyle = '#A33C3C';
             treeCtx.beginPath();
@@ -525,7 +606,6 @@ function updateTreeUI() {
         treeCtx.fill();
         treeCtx.stroke();
 
-        // Render 'R' for resign, otherwise standard move number
         if (node.displayMoveNum && node.displayMoveNum > 0) {
             treeCtx.font = "bold 11px Arial, sans-serif";
             treeCtx.fillStyle = (node.color === 'black') ? '#ffffff' : '#000000';
@@ -534,20 +614,6 @@ function updateTreeUI() {
 
             let textToDraw = node.gtpCoord === 'resign' ? 'R' : String(node.displayMoveNum);
             treeCtx.fillText(textToDraw, x, y + 1);
-        }
-    }
-
-    if (!isDraggingTree) {
-        let pos = treeLayout.get(currentNode);
-        if (pos) {
-            const targetX = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-            const targetY = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
-
-            treeContainer.scrollTo({
-                left: targetX - (treeContainer.clientWidth / 2),
-                top: targetY - (treeContainer.clientHeight / 2),
-                behavior: 'smooth'
-            });
         }
     }
 }
@@ -594,8 +660,8 @@ treeCanvas.addEventListener('click', (event) => {
     if (didDrag) return;
 
     const rect = treeCanvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const mouseX = (event.clientX - rect.left) + treeContainer.scrollLeft;
+    const mouseY = (event.clientY - rect.top) + treeContainer.scrollTop;
 
     for (let [node, pos] of treeLayout.entries()) {
         if (node === rootNode) continue;
@@ -648,6 +714,11 @@ function getNextAlpha(isUpper) {
 // ============================================================================
 function render() {
     if (!ctx) return;
+
+    // Check the cache ONCE per frame, instead of 361 times inside the stone loop
+    if (!stoneCache.black || stoneCache.cellWidth !== CELL_WIDTH) {
+        buildStoneCache();
+    }
 
     textDrawQueue = [];
 
@@ -705,26 +776,41 @@ function drawGrid() {
     ctx.strokeStyle = THEME.gridLineColor;
     ctx.lineWidth = Math.max(1.0, CELL_WIDTH * THEME.gridLineWidthMultiplier);
 
+    ctx.beginPath(); // Start ONE single path for the entire grid
+
     for (let i = 0; i < BOARD_SIZE; i++) {
         const posX = MARGIN_X + (i * CELL_WIDTH);
         const posY = MARGIN_Y + (i * CELL_HEIGHT);
 
-        ctx.beginPath(); ctx.moveTo(posX, MARGIN_Y); ctx.lineTo(posX, boardHeight - MARGIN_Y); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(MARGIN_X, posY); ctx.lineTo(boardWidth - MARGIN_X, posY); ctx.stroke();
+        ctx.moveTo(posX, MARGIN_Y);
+        ctx.lineTo(posX, boardHeight - MARGIN_Y);
+
+        ctx.moveTo(MARGIN_X, posY);
+        ctx.lineTo(boardWidth - MARGIN_X, posY);
     }
+
+    ctx.stroke(); // Command the GPU to draw all 38 lines at once
 }
 
 function drawStarPoints() {
     const starPoints = [3, 9, 15];
     ctx.fillStyle = THEME.starPointColor;
     const radius = Math.max(1.5, CELL_WIDTH * 0.06);
+
+    ctx.beginPath(); // Start ONE single path
+
     for (const x of starPoints) {
         for (const y of starPoints) {
-            ctx.beginPath();
-            ctx.arc(MARGIN_X + (x * CELL_WIDTH), MARGIN_Y + (y * CELL_HEIGHT), radius, 0, 2 * Math.PI);
-            ctx.fill();
+            const px = MARGIN_X + (x * CELL_WIDTH);
+            const py = MARGIN_Y + (y * CELL_HEIGHT);
+
+            // Move the "pen" to the edge of the next circle to avoid connecting lines
+            ctx.moveTo(px + radius, py);
+            ctx.arc(px, py, radius, 0, 2 * Math.PI);
         }
     }
+
+    ctx.fill(); // Fill all 9 dots at once
 }
 
 function drawCoordinates() {
@@ -937,7 +1023,7 @@ function drawKataSuggestions() {
 
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.ellipse(px, py, CELL_WIDTH * 0.495, CELL_HEIGHT * 0.495, 0, 0, 2 * Math.PI);
+        ctx.ellipse(px, py, CELL_WIDTH * 0.495, CELL_WIDTH * 0.495, 0, 0, 2 * Math.PI);
 
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur = 4;
@@ -974,9 +1060,17 @@ function drawKataSuggestions() {
 }
 
 function drawPlacedStones() {
+    // Pass 1: Draw all shadows and strokes underneath
     for (let x = 0; x < BOARD_SIZE; x++) {
         for (let y = 0; y < BOARD_SIZE; y++) {
-            if (boardState[x][y]) drawSingleStone(x, y, boardState[x][y], 1.0);
+            if (boardState[x][y]) drawSingleStone(x, y, boardState[x][y], 1.0, 1);
+        }
+    }
+
+    // Pass 2: Draw all perfectly round stone cores on top
+    for (let x = 0; x < BOARD_SIZE; x++) {
+        for (let y = 0; y < BOARD_SIZE; y++) {
+            if (boardState[x][y]) drawSingleStone(x, y, boardState[x][y], 1.0, 2);
         }
     }
 }
@@ -1009,7 +1103,7 @@ function drawTreeMarkers() {
                 }
 
                 const radiusX = CELL_WIDTH * radiusMultiplier;
-                const radiusY = CELL_HEIGHT * radiusMultiplier;
+                const radiusY = CELL_WIDTH * radiusMultiplier;
 
                 if (actualLineWidth > 0 && radiusX > 0 && radiusY > 0) {
                     let desiredDash = 8;
@@ -1099,7 +1193,7 @@ function drawTreeMarkers() {
                 let radiusMultiplier = 0.495;
 
                 const radiusX = CELL_WIDTH * radiusMultiplier;
-                const radiusY = CELL_HEIGHT * radiusMultiplier;
+                const radiusY = CELL_WIDTH * radiusMultiplier;
 
                 if (actualLineWidth > 0 && radiusX > 0 && radiusY > 0) {
                     let fatnessBoost = 0.7;
@@ -1142,7 +1236,7 @@ function drawTreeMarkers() {
 
         let actualLineWidth = THEME.markerCurrentLineWidth;
         const radiusX = CELL_WIDTH * 0.495;
-        const radiusY = CELL_HEIGHT * 0.495;
+        const radiusY = CELL_WIDTH * 0.495;
 
         if (appSettings.optCurrentMove && actualLineWidth > 0 && radiusX > 0 && radiusY > 0) {
             ctx.beginPath();
@@ -1282,11 +1376,7 @@ function drawGhostStoneOrMarkup() {
     }
 }
 
-function drawSingleStone(x, y, color, opacity) {
-    if (!stoneCache.black || stoneCache.cellWidth !== CELL_WIDTH) {
-        buildStoneCache();
-    }
-
+function drawSingleStone(x, y, color, opacity, pass = 'both') {
     const px = MARGIN_X + (x * CELL_WIDTH);
     const py = MARGIN_Y + (y * CELL_HEIGHT);
 
@@ -1301,7 +1391,17 @@ function drawSingleStone(x, y, color, opacity) {
     }
 
     if (cachedImg) {
-        ctx.drawImage(cachedImg, px - (cachedImg.width / 2), py - (cachedImg.height / 2));
+        if (cachedImg.stroke && cachedImg.core) {
+            // Respect the two-pass rendering system so strokes stay on the bottom
+            if (pass === 1 || pass === 'both') {
+                ctx.drawImage(cachedImg.stroke, px - (cachedImg.stroke.width / 2), py - (cachedImg.stroke.height / 2));
+            }
+            if (pass === 2 || pass === 'both') {
+                ctx.drawImage(cachedImg.core, px - (cachedImg.core.width / 2), py - (cachedImg.core.height / 2));
+            }
+        } else {
+            ctx.drawImage(cachedImg, px - (cachedImg.width / 2), py - (cachedImg.height / 2));
+        }
     }
 
     ctx.globalAlpha = 1.0;
@@ -2366,8 +2466,8 @@ commentsIcon.addEventListener('click', (e) => {
 treeCanvas.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     const rect = treeCanvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
+    const mouseX = (event.clientX - rect.left) + treeContainer.scrollLeft;
+    const mouseY = (event.clientY - rect.top) + treeContainer.scrollTop;
 
     nodeTargetedByContext = null;
 
