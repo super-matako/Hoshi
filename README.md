@@ -12,7 +12,7 @@ A simple SGF viewer/editor and GUI for KataGo to analyze one's Go games.
 
 ## How to Download
 1. Go to the [Releases page](https://github.com/super-matako/Hoshi/releases/tag/v1.0.5).
-2. Download the zip file titled `Hoshi-KataGo.zip ` for the version bundled with KataGo, or `Hoshi.exe` for the standalone version.
+2. Download the zip file titled `Hoshi-KataGo.zip` for the version bundled with KataGo, or `Hoshi.exe` for the standalone version.
 3. Legacy versions available for pre-Windows 10 machines.
 4. Mac and Linux versions upcoming.
 
