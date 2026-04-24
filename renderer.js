@@ -54,7 +54,7 @@ let stoneCache = { black: null, white: [null, null, null], cellWidth: 0 };
          const cy = cacheHeight / 2;
 
          // Authentic Japanese Go equipment ratios
-         const radiusMultiplier = color === 'black' ? 0.511 : 0.504;
+         const radiusMultiplier = color === 'black' ? 0.495 : 0.488367;
          const radiusX = CELL_WIDTH * radiusMultiplier;
          const radiusY = CELL_WIDTH * radiusMultiplier;
 
@@ -62,44 +62,79 @@ let stoneCache = { black: null, white: [null, null, null], cellWidth: 0 };
          let actualThickness = CELL_WIDTH * relativeThicknessMultiplier;
 
          // --- LAYER 1: SHADOW & STROKE CANVAS ---
-         const strokeCanvas = document.createElement('canvas');
-         strokeCanvas.width = cacheWidth;
-         strokeCanvas.height = cacheHeight;
-         const sctx = strokeCanvas.getContext('2d');
+          const strokeCanvas = document.createElement('canvas');
+          strokeCanvas.width = cacheWidth;
+          strokeCanvas.height = cacheHeight;
+          const sctx = strokeCanvas.getContext('2d');
 
-         sctx.shadowColor = THEME.stoneShadowColor;
-         sctx.shadowOffsetX = CELL_WIDTH * THEME.stoneShadowOffsetXMultiplier;
-         sctx.shadowOffsetY = CELL_HEIGHT * THEME.stoneShadowOffsetYMultiplier;
-         sctx.shadowBlur = CELL_WIDTH * THEME.stoneShadowBlurMultiplier;
+          const gapOffsetX = CELL_WIDTH * (THEME.stoneGapOffsetXMultiplier || 0);
+          const gapOffsetY = CELL_HEIGHT * (THEME.stoneGapOffsetYMultiplier || 0);
+          const gapColor = color === 'black' ? THEME.stoneBlackGapShadowColor : THEME.stoneWhiteGapShadowColor;
 
-         // Draw a solid base to cast the shadow accurately
-         sctx.beginPath();
-         sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-         sctx.fillStyle = color;
-         sctx.fill();
+          // Expanded radius to prevent the stroke from overhanging the shadow
+          const outerRadiusX = radiusX + (actualThickness / 2);
+          const outerRadiusY = radiusY + (actualThickness / 2);
 
-         // Turn off shadow for the stroke itself
-         sctx.shadowColor = 'rgba(0,0,0,0)';
-         sctx.shadowOffsetX = 0;
-         sctx.shadowOffsetY = 0;
-         sctx.shadowBlur = 0;
+          // ---------------------------------------------------------
+          // 1. THE OPAQUE SHADOW (Absolute Bottom Layer)
+          // ---------------------------------------------------------
+          sctx.shadowColor = 'rgba(0,0,0,0)';
+          sctx.shadowBlur = 0;
+          sctx.shadowOffsetX = 0;
+          sctx.shadowOffsetY = 0;
 
-         if (actualThickness > 0 && radiusX > 0 && radiusY > 0) {
-             let gradient = sctx.createLinearGradient(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY);
-             if (color === 'black') {
-                 gradient.addColorStop(0, THEME.stoneBlackStrokeTopLeft);
-                 gradient.addColorStop(1, THEME.stoneBlackStrokeBottomRight);
-             } else {
-                 gradient.addColorStop(0, THEME.stoneWhiteStrokeTopLeft);
-                 gradient.addColorStop(1, THEME.stoneWhiteStrokeBottomRight);
-             }
+          sctx.beginPath();
+          sctx.ellipse(cx + gapOffsetX, cy + gapOffsetY, outerRadiusX, outerRadiusY, 0, 0, 2 * Math.PI);
+          sctx.fillStyle = gapColor || color;
+          sctx.fill();
 
-             sctx.beginPath();
-             sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-             sctx.lineWidth = actualThickness;
-             sctx.strokeStyle = gradient;
-             sctx.stroke();
-         }
+          // ---------------------------------------------------------
+          // 2. THE BLURRY SHADOW (Middle Layer)
+          // ---------------------------------------------------------
+          sctx.shadowColor = THEME.stoneShadowColor;
+          sctx.shadowOffsetX = CELL_WIDTH * THEME.stoneShadowOffsetXMultiplier;
+          sctx.shadowOffsetY = CELL_HEIGHT * THEME.stoneShadowOffsetYMultiplier;
+          sctx.shadowBlur = CELL_WIDTH * THEME.stoneShadowBlurMultiplier;
+
+          sctx.beginPath();
+          sctx.ellipse(cx + gapOffsetX, cy + gapOffsetY, outerRadiusX, outerRadiusY, 0, 0, 2 * Math.PI);
+          // We fill it again with the gap color so the shadow is cast over the previous layer
+          sctx.fillStyle = gapColor || color;
+          sctx.fill();
+
+          // CRITICAL: Turn off shadows forever for the rest of this stone
+          sctx.shadowColor = 'rgba(0,0,0,0)';
+          sctx.shadowBlur = 0;
+          sctx.shadowOffsetX = 0;
+          sctx.shadowOffsetY = 0;
+
+          // ---------------------------------------------------------
+          // 3. THE STONE BASE (Top Layer)
+          // ---------------------------------------------------------
+          sctx.beginPath();
+          sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+          sctx.fillStyle = color;
+          sctx.fill();
+
+          // ---------------------------------------------------------
+          // 4. THE STROKE (Outer Rim)
+          // ---------------------------------------------------------
+          if (actualThickness > 0 && radiusX > 0 && radiusY > 0) {
+              let gradient = sctx.createLinearGradient(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY);
+              if (color === 'black') {
+                  gradient.addColorStop(0, THEME.stoneBlackStrokeTopLeft);
+                  gradient.addColorStop(1, THEME.stoneBlackStrokeBottomRight);
+              } else {
+                  gradient.addColorStop(0, THEME.stoneWhiteStrokeTopLeft);
+                  gradient.addColorStop(1, THEME.stoneWhiteStrokeBottomRight);
+              }
+
+              sctx.beginPath();
+              sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+              sctx.lineWidth = actualThickness;
+              sctx.strokeStyle = gradient;
+              sctx.stroke();
+          }
 
          // --- LAYER 2: CORE TEXTURE CANVAS ---
          const coreCanvas = document.createElement('canvas');

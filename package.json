@@ -9,26 +9,24 @@
   },
   "build": {
     "appId": "com.hoshi.goapp",
-    "extraFiles": [
-      "LICENSE"
-    ],
-    "extraResources": [
-      {
-        "from": "KataGo",
-        "to": "KataGo",
-        "filter": ["**/*"]
-      }
+    "files": [
+      "**/*",
+      "!KataGo/**/*",
+      "!KataGo"
     ],
     "win": {
-      "target": "dir",
+      "target": "portable",
       "icon": "icon.ico"
+    },
+    "portable": {
+      "artifactName": "Hoshi_${version}_${arch}.exe"
     },
     "directories": {
       "output": "dist"
     }
   },
   "devDependencies": {
-    "electron": "^...",
-    "electron-builder": "^..."
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0"
   }
 }

@@ -120,18 +120,29 @@ app.whenReady().then(() => {
 
     // Provides the frontend with the correct absolute paths for the fallback engine
     ipcMain.handle('get-default-engine-paths', () => {
-        const engineFolder = app.isPackaged
-            ? path.join(process.resourcesPath, 'KataGo')
-            : path.join(__dirname, 'KataGo');
+    let basePath;
 
-        const exeExtension = process.platform === 'win32' ? '.exe' : '';
+    // 1. If running as a single portable .exe, look next to the .exe file
+    if (process.env.PORTABLE_EXECUTABLE_DIR) {
+        basePath = process.env.PORTABLE_EXECUTABLE_DIR;
+    }
+    // 2. If running as a standard installed app
+    else if (app.isPackaged) {
+        basePath = path.dirname(app.getPath('exe'));
+    }
+    // 3. If running in development (npm start)
+    else {
+        basePath = __dirname;
+    }
 
-        return {
-            exe: path.join(engineFolder, `katago${exeExtension}`),
-            net: path.join(engineFolder, 'default_model.bin.gz'),
-            cfg: path.join(engineFolder, 'analysis_example.cfg')
-        };
-    });
+    const exeExt = process.platform === 'win32' ? '.exe' : '';
+
+    return {
+        exe: path.join(basePath, 'KataGo', `katago${exeExt}`),
+        net: path.join(basePath, 'KataGo', 'default_model.bin.gz'),
+        cfg: path.join(basePath, 'KataGo', 'analysis_example.cfg')
+    };
+});
 
     // --- NATIVE OS FILE PICKERS ---
 
