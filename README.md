@@ -1,4 +1,5 @@
-<img width="1710" height="1237" alt="Hoshi" src="https://github.com/user-attachments/assets/ab269eb9-f700-4835-9d2e-445bf04edd65" />
+<img width="1682" height="1203" alt="Hoshi" src="https://github.com/user-attachments/assets/b212a8b5-26d0-4d47-bd51-47621777056f" />
+
 
 
 # Hoshi
@@ -6,14 +7,14 @@
 A simple SGF viewer/editor and GUI for KataGo to analyze one's Go games.
 
 ## KataGo Engine
-* Comes pre-packaged with **KataGo OpenCL**, which should run on most devices with no problems.
-* Alternatively, you can download the `No-Engine` version and provide your own KataGo files.
+* Comes bundled with **KataGo OpenCL**, which should run on most devices with no problems.
+* Alternatively, you can download the standalone .exe version and provide your own KataGo files.
 
 ## How to Download
 1. Go to the [Releases page](https://github.com/super-matako/Hoshi/releases/tag/v1.0.5).
-2. Download the zip file titled `Hoshi.v1.0.5.zip` for the version bundled with KataGo, or `Hoshi.v1.0.5.No-Engine.zip` for the version without any engine supplied.
-3. Extract the folder and run `Hoshi.exe`. No installation required.
-4. Windows only for now (Mac version coming soon).
+2. Download the zip file titled `Hoshi-KataGo.zip ` for the version bundled with KataGo, or `Hoshi.exe` for the standalone version.
+3. Legacy versions available for pre-Windows 10 machines.
+4. Mac and Linux versions upcoming.
 
 ## Keyboard Shortcuts
 
