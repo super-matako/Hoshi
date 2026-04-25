@@ -1,6 +1,4 @@
-<img width="1682" height="1203" alt="Hoshi" src="https://github.com/user-attachments/assets/b212a8b5-26d0-4d47-bd51-47621777056f" />
-
-
+<img width="1710" height="1230" alt="Hoshi" src="https://github.com/user-attachments/assets/e0d06864-8c9f-4251-a3b1-27ec257341d3" />
 
 # Hoshi
 
