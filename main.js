@@ -110,9 +110,38 @@ function startKataGo(customPaths = {}) {
     }
 }
 
-// --- APP INITIALIZATION & IPC LISTENERS ---
-app.whenReady().then(() => {
-    createWindow();
+// --- SINGLE INSTANCE LOCK & FILE CATCHER ---
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    app.quit();
+} else {
+    // 1. HOT BOOT: The app is already running, catch the file from the second instance
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+
+            // Aggressively scan the command line for the SGF file
+            const filePath = commandLine.find(arg => arg.toLowerCase().endsWith('.sgf'));
+            if (filePath) {
+                loadExternalSgf(filePath);
+            }
+        }
+    });
+
+    // --- APP INITIALIZATION & IPC LISTENERS ---
+    app.whenReady().then(() => {
+        createWindow();
+
+        // 2. COLD BOOT: The app was fully closed and launched by double-clicking a file
+        mainWindow.webContents.on('did-finish-load', () => {
+            // Aggressively scan process arguments for the SGF file
+            const filePath = process.argv.find(arg => arg.toLowerCase().endsWith('.sgf'));
+            if (filePath) {
+                loadExternalSgf(filePath);
+            }
+        });
 
     ipcMain.on('start-engine', (event, paths) => {
         startKataGo(paths);
@@ -260,6 +289,24 @@ app.whenReady().then(() => {
 
     ipcMain.on('exit-app', () => app.quit());
 });
+} // <-- This brace closes the Single Instance Lock's "else" block
+
+// --- HELPER FUNCTION ---
+function loadExternalSgf(filePath) {
+    try {
+        // Ensure the path is properly formatted for Windows
+        const normalizedPath = path.resolve(filePath);
+        const sgfData = fs.readFileSync(normalizedPath, 'utf-8');
+        currentFilePath = normalizedPath;
+
+        if (mainWindow && mainWindow.webContents) {
+            mainWindow.webContents.send('sgf-data', sgfData);
+            mainWindow.webContents.send('file-linked');
+        }
+    } catch (err) {
+        console.error("Failed to read external SGF:", err);
+    }
+}
 
 // --- PROCESS CLEANUP ---
 app.on('will-quit', () => {
