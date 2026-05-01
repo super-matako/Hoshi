@@ -14,9 +14,6 @@ if (header) {
     });
 }
 
-// NOTE: Duplicate win-min, win-max, and win-close listeners were removed.
-// renderer_12.js handles these perfectly on its own. This stops the Maximize Blink!
-
 // --- 2. ELECTRON API MOCK ---
 window.electronAPI = {
     minimizeWindow: () => invoke('plugin:window|minimize'),
@@ -63,8 +60,7 @@ window.electronAPI = {
             try { callback([JSON.parse(e.payload)]); } catch (err) {}
         });
 
-        // CRITICAL: This pipes KataGo's internal logs directly to your console!
-        // If KataGo is tuning or hitting an OpenCL error, you will see it here.
+        // This pipes KataGo's internal logs directly to console.
         listen('katago-stderr', (e) => {
             console.log("[KataGo Engine]:", e.payload);
             if (e.payload.toLowerCase().includes('error') || e.payload.toLowerCase().includes('fatal')) {
@@ -115,7 +111,6 @@ window.electronAPI = {
 };
 
 // --- 3. NATIVE DRAG AND DROP ---
-// Tauri natively intercepts file drops at the OS level, completely bypassing the browser's DOM.
 listen('tauri://drag-enter', () => {
     document.getElementById('drag-overlay')?.classList.add('active');
 });
@@ -127,7 +122,6 @@ listen('tauri://drag-leave', () => {
 listen('tauri://drag-drop', async (e) => {
     document.getElementById('drag-overlay')?.classList.remove('active');
 
-    // Securely extract the native OS file paths from Tauri's payload
     const payload = e.payload;
     const paths = payload?.paths ? payload.paths : (Array.isArray(payload) ? payload : []);
 
@@ -135,13 +129,10 @@ listen('tauri://drag-drop', async (e) => {
         const filePath = paths[0];
 
         try {
-            // Read the file natively through your existing Rust backend
             const content = await invoke('read_file', { path: filePath });
 
-            // Set the absolute path so the "Save" button knows where it is
             currentSgfFilePath = filePath;
 
-            // Dispatch the raw data back to renderer.js (exactly like the Open button does)
             document.dispatchEvent(new CustomEvent('internal-sgf-data', { detail: content }));
             document.dispatchEvent(new Event('internal-file-linked'));
         } catch (err) {

@@ -151,7 +151,7 @@
         .info-input:focus { outline: none; border-color: var(--accent); background: var(--input-bg); }
         .info-input::placeholder, .comments-box::placeholder { color: #a38f85; font-style: italic; font-weight: normal; }
 
-        /* NEW: Inline Error Styling */
+        /* Inline Error Styling */
         .info-input.error-state { border-color: #ef4444 !important; color: #fca5a5 !important; background: rgba(239, 68, 68, 0.05) !important; }
 
         /* Component 1: Game Title & Player Info */
@@ -199,7 +199,7 @@
         .tool-btn.danger-hover:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #ef4444; }
         .toolbar-divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 2px; }
 
-        /* Specialized Markup Tool: Diagonal aA Split Button */
+        /* Specialized Markup Tool: aA Split Button */
         .split-alpha-btn { position: relative; }
         .split-alpha-btn .alpha-lower, .split-alpha-btn .alpha-upper { position: absolute; font-family: 'Google Sans', sans-serif; font-weight: normal; transition: opacity 0.15s; }
         .split-alpha-btn .alpha-lower { left: 4px; font-size: 0.9rem; opacity: 1; }
@@ -376,7 +376,7 @@
         }
 
         #pass-popover.active {
-            display: flex; /* Or whatever display type you are currently using */
+            display: flex;
             animation: popBounce 0.35s ease-out forwards;
         }
     </style>
@@ -562,7 +562,7 @@
         <div class="context-item danger" id="ctx-delete">Delete node</div>
     </div>
 
-    <!-- NEW: Context menu for clicking directly on board stones -->
+    <!-- Context menu for clicking directly on board stones -->
     <div id="board-context-menu" style="position: absolute; display: none; z-index: 1000; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); padding: 5px 0; min-width: 150px; font-size: 0.9rem;">
         <div class="context-item" id="ctx-board-travel">Travel to this move</div>
         <div class="context-item" id="ctx-board-edit">Edit placement</div>

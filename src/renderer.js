@@ -16,7 +16,6 @@ let boardHeight = 0;
 let isEditModeActive = false;
 let nodeBeingEdited = null;
 
-// --- NEW: Unified Global Undo/Redo Stacks ---
 let globalUndoStack = [];
 let globalRedoStack = [];
 
@@ -66,7 +65,6 @@ let stoneCache = { black: null, white: [null, null, null], cellWidth: 0 };
          const cx = cacheWidth / 2;
          const cy = cacheHeight / 2;
 
-         // Authentic Japanese Go equipment ratios
          const radiusMultiplier = color === 'black' ? 0.495 : 0.488367;
          const radiusX = CELL_WIDTH * radiusMultiplier;
          const radiusY = CELL_WIDTH * radiusMultiplier;
@@ -549,7 +547,7 @@ function calculateTreeLayout() {
             lowest_y[x] = y + 1;
         }
 
-        // 4. CRITICAL FIX: Reserve the parent's column for the drop line!
+        // 4. Reserve the parent's column for the drop line.
         // By reserving down to startY + 1, we guarantee the 45-degree corner has
         // completely empty space to route through without touching a node.
         if (!isMainLine) {
@@ -648,7 +646,7 @@ function updateTreeUI() {
     }
 }
 
-// New drawing loop that strictly renders only what is visible on the screen
+// Drawing loop that strictly renders only what is visible on the screen
 function renderTreeCanvas() {
     const dpr = window.devicePixelRatio || 1;
     const viewW = treeContainer.clientWidth;
@@ -797,7 +795,7 @@ function renderTreeCanvas() {
             treeCtx.fill();
         }
 
-        // 2. Dashed blue highlight specifically for the EDITED node
+        // 2. Dashed highlight specifically for the EDITED node
         if (isEditModeActive && node === nodeBeingEdited) {
             treeCtx.beginPath();
             // Dynamically scale the edit ring down if it's the root node
@@ -819,7 +817,7 @@ function renderTreeCanvas() {
             treeCtx.setLineDash([]);
         }
 
-        // 3. Draw a small ivory sphere for the root "Empty Board" node
+        // 3. Draw a small sphere for the root "Empty Board" node
         if (node === rootNode) {
             treeCtx.fillStyle = THEME.treeBranchColor;
             treeCtx.beginPath();
@@ -840,10 +838,10 @@ function renderTreeCanvas() {
         if (node.displayMoveNum && node.displayMoveNum > 0) {
             let textToDraw = node.gtpCoord === 'resign' ? 'R' : String(node.displayMoveNum);
 
-            // --- NEW: Maximize text scale to fit snugly inside the 26px circle when zoomed out ---
+            // --- Maximize text scale to fit inside the 26px circle when zoomed out ---
             let fontSize = 11;
 
-            // At exactly 4 clicks out (0.6x scale), we inflate the font
+            // At 4 clicks out (0.6x scale), inflate the font
             if (currentTreeZoom < 0.65) {
                 let len = textToDraw.length;
                 if (len === 1) fontSize = 19;
@@ -1211,7 +1209,6 @@ function drawKataSuggestions() {
             if (!coords) continue;
 
             let isLocal = false;
-            // 9x9 box means +/- 4 intersections from the center stone
             if (lastX !== null && lastY !== null) {
                 if (Math.abs(coords.x - lastX) <= 4 && Math.abs(coords.y - lastY) <= 4) {
                     isLocal = true;
@@ -1302,7 +1299,7 @@ function drawKataSuggestions() {
 }
 
 function drawPlacedStones() {
-    // --- NEW: Get the timeline snapshot from right before the edited move ---
+    // Get the timeline snapshot from right before the edited move
     let parentState = null;
     if (isEditModeActive && nodeBeingEdited) {
         parentState = nodeBeingEdited.parent ? nodeBeingEdited.parent.stateSnapshot : Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
@@ -1316,7 +1313,7 @@ function drawPlacedStones() {
 
                 let opacity = 1.0;
                 if (isEditModeActive && hoverPos && hoverPos.x === x && hoverPos.y === y) {
-                    // --- NEW: Only fade the stone if it does NOT exist in the parent timeline ---
+                    // Only fade the stone if it does NOT exist in the parent timeline
                     let isPastStone = parentState && parentState[x][y] !== null;
                     if (!isPastStone) {
                         opacity = 0.3;
@@ -1610,7 +1607,7 @@ function drawMarkup() {
 }
 
 function drawGhostStoneOrMarkup() {
-  // --- NEW: Edit Mode Rendering ---
+  // Edit Mode Rendering
     if (isEditModeActive && nodeBeingEdited) {
 
         // 1. Ghost at the original position (so you know where it came from)
@@ -1622,7 +1619,7 @@ function drawGhostStoneOrMarkup() {
         if (hoverPos) {
             let isOriginalSpot = (hoverPos.x === nodeBeingEdited.x && hoverPos.y === nodeBeingEdited.y);
 
-            // --- NEW: Look at the board state from the PARENT node's timeline ---
+            // Look at the board state from the PARENT node's timeline
             let parentState = nodeBeingEdited.parent ? nodeBeingEdited.parent.stateSnapshot : Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
 
             // Allow the ghost to draw even if a "future" stone is currently sitting there
@@ -1631,7 +1628,7 @@ function drawGhostStoneOrMarkup() {
             }
         }
 
-        // 3. The 100% solid stone physically flying to, or attached to, your mouse
+        // 3. The solid stone physically flying to, or attached to, your mouse
         if (rawMousePos || isStoneAnimating || isStoneHoveringInPlace) {
             ctx.globalAlpha = 1.0;
 
@@ -1643,7 +1640,7 @@ function drawGhostStoneOrMarkup() {
             // The exact bounding box of the physical stone
             let clipRadius = CELL_WIDTH * 0.50;
 
-            // --- FIX: Save context to apply our cookie-cutter clipping mask ---
+            // Save context to apply our cookie-cutter clipping mask
             ctx.save();
 
             // 1. Setup the clean, dynamic shadow
@@ -1948,11 +1945,10 @@ document.addEventListener('mouseup', (e) => {
     }
 });
 
-// --- NEW: Disable default browser right-click menu ---
+// Disable default browser right-click menu
 document.addEventListener('contextmenu', (e) => {
-    // We prevent the default menu globally, UNLESS the user is right-clicking
+    // Prevent the default menu globally, UNLESS the user is right-clicking
     // an input field (so they can still right-click to copy/paste text).
-    // Your custom game tree menu will still work because it handles itself!
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
     }
@@ -1995,10 +1991,10 @@ document.addEventListener('mouseup', () => {
     isErasing = false;
 });
 
-// --- NEW: Global tracker for exact mouse pixels ---
+// Global tracker for exact mouse pixels
 let rawMousePos = null;
 
-// --- NEW: Stone Pick-up Animation State ---
+// Stone Pick-up Animation State
 let isStoneAnimating = false;
 let isStoneHoveringInPlace = false;
 let stoneAnimStartX = 0;
@@ -2008,7 +2004,7 @@ let stoneAnimCurrentY = 0;
 let stoneAnimStartTime = 0;
 const STONE_ANIM_DURATION = 150; // The flight time in milliseconds
 
-// --- NEW: Smooth Animation Loop ---
+// Smooth Animation Loop
 function animateStonePickup(timestamp) {
     if (!isStoneAnimating && !isStoneHoveringInPlace) return;
 
@@ -2048,12 +2044,11 @@ canvas.addEventListener('mousemove', (event) => {
 
     rawMousePos = { x: mouseX, y: mouseY };
 
-    // --- NEW: Transition from hover-in-place to flying when mouse enters board ---
+    // Transition from hover-in-place to flying when mouse enters board
     if (isEditModeActive && isStoneHoveringInPlace) {
         isStoneHoveringInPlace = false;
         isStoneAnimating = true;
         stoneAnimStartTime = 0;
-        // The animation loop is already running, so it will naturally transition instantly!
     }
 
     if (isEditModeActive) render();
@@ -2103,7 +2098,7 @@ canvas.addEventListener('click', (event) => {
         // Prevent dropping on a stone that existed BEFORE this move was played
         if (parentState[hoverPos.x][hoverPos.y] && !isOriginalSpot) return;
 
-        // --- NEW: Push the Edit Action to the Global Undo Stack ---
+        // Push the Edit Action to the Global Undo Stack
         if (!isOriginalSpot) {
             pushUndo({
                 type: 'edit_node',
@@ -2163,7 +2158,7 @@ canvas.addEventListener('click', (event) => {
             let newNode = new GameNode(hoverPos.x, hoverPos.y, color, parentNode, testBoard, capB, capW);
             parentNode.children.push(newNode);
 
-            // --- NEW: Push the Add Node Action to the Global Undo Stack ---
+            // Push the Add Node Action to the Global Undo Stack
             pushUndo({ type: 'add_node', parent: parentNode, node: newNode });
 
             currentNode = newNode;
@@ -2231,7 +2226,7 @@ function rebuildDescendantStates(startNode) {
             capCount = applyMove(newState, node.x, node.y, node.color);
 
             // If the edited move suddenly results in an illegal suicide, we must
-            // flag it or handle it. For this implementation, we will just force the placement
+            // flag it or handle it. For this implementation, just force the placement
             // anyway to prevent cascading crashes, but warn in the console.
             if (capCount === -1) {
                 console.warn("Edit resulted in illegal suicide move. Proceeding anyway to preserve tree.");
@@ -2496,7 +2491,7 @@ function updateAnalysisUI() {
 
     if (!box || !statusTextEl || !chartCont || !wrContainer) return;
 
-    // --- NEW: Minimalist Engine Missing State ---
+    // Engine Missing State
     if (isEngineMissing) {
         box.classList.add('active');
         statusTextEl.innerText = 'KataGo missing - configure in Options';
@@ -2821,7 +2816,7 @@ document.addEventListener('keydown', (e) => {
                 "Delete Node",
                 "Permanently remove this move and all its variations?",
                 "Delete",
-                fakeAnchor, // It will now perfectly anchor above the hovered tree node
+                fakeAnchor, // Anchor above the hovered tree node
                 () => deleteNode(currentNode)
             );
         }
@@ -2985,7 +2980,7 @@ document.addEventListener('click', (e) => {
         }
     }
 
-    // --- NEW: Cancel edit mode if clicking outside the board ---
+    // Cancel edit mode if clicking outside the board
     // (We ignore clicks inside the context menus so we don't instantly cancel when first clicking "Edit Stone")
     if (isEditModeActive && e.target !== canvas && !e.target.closest('#context-menu') && !e.target.closest('#board-context-menu')) {
         isEditModeActive = false;
@@ -3096,7 +3091,7 @@ document.getElementById('ctx-edit-node').addEventListener('click', (e) => {
             isStoneAnimating = false;
         }
 
-        // --- NEW: Always start the engine, even if just hovering ---
+        // Always start the engine, even if just hovering
         requestAnimationFrame(animateStonePickup);
 
         syncAndRender();
@@ -3105,7 +3100,7 @@ document.getElementById('ctx-edit-node').addEventListener('click', (e) => {
     }
 });
 
-// --- NEW: Pressing Escape cancels Edit Mode ---
+// Pressing Escape cancels Edit Mode
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isEditModeActive) {
         isEditModeActive = false;
@@ -3114,7 +3109,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// --- NEW: Board Stone Context Menu ---
+// Board Stone Context Menu
 let nodeTargetedByBoard = null;
 
 canvas.addEventListener('contextmenu', (event) => {
@@ -3200,7 +3195,7 @@ document.getElementById('ctx-board-edit').addEventListener('click', (e) => {
             isStoneAnimating = false;
         }
 
-        // --- NEW: Always start the engine, even if just hovering ---
+        // Always start the engine, even if just hovering
         requestAnimationFrame(animateStonePickup);
 
         syncAndRender();
@@ -3346,7 +3341,7 @@ function showConfirmModal(title, message, confirmText, anchorElement, onConfirm,
 
     confirmOverlay.classList.add('active');
 
-    // --- FIX: Measure the box size out here so both code paths can use it ---
+    // Measure the box size out here so both code paths can use it
     const boxRect = modalBox.getBoundingClientRect();
 
     // Anchor the dialog to a specific button if provided, otherwise center it
@@ -3967,7 +3962,7 @@ document.getElementById('btn-pass').addEventListener('click', (e) => {
         newNode.gtpCoord = 'pass';
         parentNode.children.push(newNode);
 
-        // --- NEW: Track Action ---
+        // Track Action
         pushUndo({ type: 'add_node', parent: parentNode, node: newNode });
 
         currentNode = newNode;
@@ -3996,7 +3991,7 @@ document.getElementById('btn-resign').addEventListener('click', (e) => {
             newNode.gtpCoord = 'resign';
             parentNode.children.push(newNode);
 
-            // --- NEW: Track Action ---
+            // Track Action
             pushUndo({ type: 'add_node', parent: parentNode, node: newNode });
 
             currentNode = newNode;
@@ -4431,7 +4426,7 @@ document.querySelectorAll('.info-input, .comments-box').forEach(el => {
     el.addEventListener('input', updateNewButtonState);
 });
 
-// --- NEW: Disable all browser autofill, spellcheck, and suggestion popovers ---
+// Disable all browser autofill, spellcheck, and suggestion popovers
 document.querySelectorAll('input, textarea').forEach(el => {
     el.setAttribute('autocomplete', 'off');
     el.setAttribute('spellcheck', 'false');
