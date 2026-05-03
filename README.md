@@ -66,7 +66,7 @@ A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 No more bundling with a KataGo folder! If you don't already have KataGo, there is now a nifty `Auto-setup` button in the Options menu, allowing you to easily download the appropriate KataGo version for your system.
 
 ### Cross-platform compatibility
-Versions for Mac and Linux are now live, in addition to Windows.
+Versions for Mac and Linux are now live, in addition to Windows. They are still experimental and being developed into working order.
 
 ## v1.1.0
 ### Moved to Tauri
