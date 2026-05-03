@@ -1,50 +1,51 @@
-name: "Release"
+name: "Manual Build (Mac & Linux)"
+
 on:
-  push:
-    tags:
-      - 'v*' # This triggers the workflow ONLY when you push a version tag like v1.1.1
+  workflow_dispatch:
 
 jobs:
-  publish-tauri:
-    permissions:
-      contents: write
+  build:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        include:
+          - platform: macos-latest
+            bundle: dmg
+            os-name: Mac
+          - platform: ubuntu-22.04
+            bundle: appimage
+            os-name: Linux
 
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
-      # Install Node.js
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Install Rust
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      # Install Linux Dependencies (Only runs on the Linux machine)
+      # Linux-specific dependencies
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
 
-      # Install Frontend Dependencies
       - name: install frontend dependencies
-        run: npm install # or yarn install, pnpm install, etc.
+        run: npm install
 
-      # Build the App using the official Tauri Action
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Tauri App
+        run: npm run tauri build -- --bundles ${{ matrix.bundle }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tagName: Hoshi-${{ github.ref_name }}
-          releaseName: "Hoshi ${{ github.ref_name }}"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: true
-          prerelease: false
+          name: Hoshi-${{ matrix.os-name }}-${{ matrix.bundle }}
+          path: |
+            src-tauri/target/release/bundle/dmg/*.dmg
+            src-tauri/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: error
