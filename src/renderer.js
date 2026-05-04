@@ -465,6 +465,16 @@ function resizeBoard() {
 
     render();
     drawAnalysisChart();
+
+    // --- LAYOUT DETECTION ---
+    // Match the CSS media query logic exactly: Widescreen if > 1200px AND aspect ratio > 4:3
+    let isWidescreen = window.innerWidth >= 1450 && (window.innerWidth / window.innerHeight >= 1/1);
+    let newOrientation = isWidescreen ? 'vertical' : 'horizontal';
+
+    if (newOrientation !== treeOrientation) {
+        treeOrientation = newOrientation;
+        updateTreeUI(); // Force canvas to recalculate and redraw
+    }
 }
 window.addEventListener('resize', resizeBoard);
 
@@ -489,6 +499,22 @@ const TREE_CELL_SIZE = 38;
 const TREE_RADIUS = 13;
 const TREE_PADDING_TOP = 15;
 
+let treeOrientation = 'horizontal';
+
+function getTreePx(pos) {
+    if (treeOrientation === 'vertical') {
+        return {
+            x: pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP,
+            y: pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2)
+        };
+    } else {
+        return {
+            x: pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2),
+            y: pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP
+        };
+    }
+}
+
 let treeLayout = new Map();
 let maxTreeCol = 0;
 let maxTreeRow = 0;
@@ -502,7 +528,6 @@ function calculateTreeLayout() {
     let lowest_y = [];
 
     function assignBranch(head, parentRow, isMainLine) {
-        // 1. Gather all nodes that form this continuous branch
         let branchNodes = [];
         let curr = head;
         while (curr) {
@@ -510,33 +535,30 @@ function calculateTreeLayout() {
             curr = curr.children[0];
         }
 
-        // 2. Find the highest safe row for this branch to start on
         let startY = isMainLine ? 0 : parentRow + 1;
 
         if (!isMainLine) {
             let parentX = head.parent ? head.parent.moveNumber : head.moveNumber - 1;
 
-            // The vertical drop line completely occupies the parent's column down to startY.
-            // So we must start at least as low as the lowest occupied cell in the parent's column.
             if ((lowest_y[parentX] || 0) > startY) {
                 startY = lowest_y[parentX];
             }
 
-            // Also check the columns for the nodes themselves
             for (let i = 0; i < branchNodes.length; i++) {
                 let x = branchNodes[i].moveNumber;
+                // ALWAYS cascade diagonally, regardless of orientation
                 let requiredY = (lowest_y[x] || 0) - i;
+
                 if (requiredY > startY) {
                     startY = requiredY;
                 }
             }
         }
 
-        // 3. Place the nodes. Main line stays horizontal (y=0).
-        // Alternate branches cascade diagonally (y = startY + i).
         for (let i = 0; i < branchNodes.length; i++) {
             let node = branchNodes[i];
             let x = node.moveNumber;
+            // ALWAYS cascade diagonally, regardless of orientation
             let y = isMainLine ? 0 : startY + i;
 
             treeLayout.set(node, { col: x, row: y });
@@ -545,20 +567,15 @@ function calculateTreeLayout() {
             if (x > maxTreeCol) maxTreeCol = x;
             if (y > maxTreeRow) maxTreeRow = y;
 
-            // Reserve the space below this node so future branches don't collide
             lowest_y[x] = y + 1;
         }
 
-        // 4. Reserve the parent's column for the drop line.
-        // By reserving down to startY + 1, we guarantee the 45-degree corner has
-        // completely empty space to route through without touching a node.
         if (!isMainLine) {
             let parentX = head.parent ? head.parent.moveNumber : head.moveNumber - 1;
             lowest_y[parentX] = Math.max(lowest_y[parentX] || 0, startY + 1);
         }
 
-        // 5. Process sub-variations in REVERSE order.
-        // This ensures deep branches anchor the layout, and early branches slide cleanly underneath them.
+        // Process sub-variations in reverse order so long branches slide underneath
         for (let i = branchNodes.length - 1; i >= 0; i--) {
             let node = branchNodes[i];
             let y = isMainLine ? 0 : startY + i;
@@ -610,8 +627,14 @@ function updateTreeUI() {
     let scaledCellSize = TREE_CELL_SIZE * currentTreeZoom;
     let scaledPadding = TREE_PADDING_TOP * currentTreeZoom;
 
-    let logicalWidth = Math.max((maxTreeCol + 2) * scaledCellSize, treeContainer.clientWidth);
-    let logicalHeight = Math.max((maxTreeRow + 2) * scaledCellSize + scaledPadding, treeContainer.clientHeight);
+    let logicalWidth, logicalHeight;
+    if (treeOrientation === 'vertical') {
+        logicalWidth = Math.max((maxTreeRow + 2) * scaledCellSize + scaledPadding, treeContainer.clientWidth);
+        logicalHeight = Math.max((maxTreeCol + 2) * scaledCellSize, treeContainer.clientHeight);
+    } else {
+        logicalWidth = Math.max((maxTreeCol + 2) * scaledCellSize, treeContainer.clientWidth);
+        logicalHeight = Math.max((maxTreeRow + 2) * scaledCellSize + scaledPadding, treeContainer.clientHeight);
+    }
 
     // --- CANVAS VIRTUALIZATION FIX ---
     let treeSpacer = document.getElementById('tree-spacer');
@@ -624,7 +647,17 @@ function updateTreeUI() {
         treeCanvas.style.top = '0px';
         treeCanvas.style.left = '0px';
 
-        treeContainer.addEventListener('scroll', () => renderTreeCanvas());
+        // Throttle the scroll event to the monitor's refresh rate to prevent lag
+        let isScrolling = false;
+        treeContainer.addEventListener('scroll', () => {
+            if (!isScrolling) {
+                window.requestAnimationFrame(() => {
+                    renderTreeCanvas();
+                    isScrolling = false;
+                });
+                isScrolling = true;
+            }
+        });
     }
 
     treeSpacer.style.width = logicalWidth + 'px';
@@ -635,13 +668,10 @@ function updateTreeUI() {
     if (!isDraggingTree) {
         let pos = treeLayout.get(currentNode);
         if (pos) {
-            // Apply zoom scalar to center the scroll perfectly
-            const targetX = (pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2)) * currentTreeZoom;
-            const targetY = (pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP) * currentTreeZoom;
-
+            let p = getTreePx(pos);
             treeContainer.scrollTo({
-                left: targetX - (treeContainer.clientWidth / 2),
-                top: targetY - (treeContainer.clientHeight / 2),
+                left: (p.x * currentTreeZoom) - (treeContainer.clientWidth / 2),
+                top: (p.y * currentTreeZoom) - (treeContainer.clientHeight / 2),
                 behavior: 'smooth'
             });
         }
@@ -654,49 +684,45 @@ function renderTreeCanvas() {
     const viewW = treeContainer.clientWidth;
     const viewH = treeContainer.clientHeight;
 
-    // Lock the canvas hardware size to the small viewport window
     treeCanvas.width = viewW * dpr;
     treeCanvas.height = viewH * dpr;
     treeCanvas.style.width = viewW + 'px';
     treeCanvas.style.height = viewH + 'px';
 
     treeCtx.setTransform(1, 0, 0, 1, 0, 0);
-    // Let Canvas dynamically scale everything we draw!
     treeCtx.scale(dpr * currentTreeZoom, dpr * currentTreeZoom);
-
-    // Clear Rect must account for the scaled coordinate space
     treeCtx.clearRect(0, 0, viewW / currentTreeZoom, viewH / currentTreeZoom);
 
-    // Offset the drawing matrix by the container's scroll position, scaled appropriately
     const scrollX = treeContainer.scrollLeft;
     const scrollY = treeContainer.scrollTop;
     treeCtx.translate(-scrollX / currentTreeZoom, -scrollY / currentTreeZoom);
 
-    // Establish bounds to "cull" off-screen nodes
-    const minCol = Math.floor((scrollX / currentTreeZoom) / TREE_CELL_SIZE) - 1;
-    const maxCol = Math.ceil(((scrollX + viewW) / currentTreeZoom) / TREE_CELL_SIZE) + 1;
-    const minRow = Math.floor(((scrollY / currentTreeZoom) - TREE_PADDING_TOP) / TREE_CELL_SIZE) - 1;
-    const maxRow = Math.ceil((((scrollY + viewH) / currentTreeZoom) - TREE_PADDING_TOP) / TREE_CELL_SIZE) + 1;
+    // --- SWAPPABLE CULLING BOUNDS ---
+    let minCol, maxCol, minRow, maxRow;
+    if (treeOrientation === 'vertical') {
+        minRow = Math.floor((scrollX / currentTreeZoom) / TREE_CELL_SIZE) - 1;
+        maxRow = Math.ceil(((scrollX + viewW) / currentTreeZoom) / TREE_CELL_SIZE) + 1;
+        minCol = Math.floor(((scrollY / currentTreeZoom) - TREE_PADDING_TOP) / TREE_CELL_SIZE) - 1;
+        maxCol = Math.ceil((((scrollY + viewH) / currentTreeZoom) - TREE_PADDING_TOP) / TREE_CELL_SIZE) + 1;
+    } else {
+        minCol = Math.floor((scrollX / currentTreeZoom) / TREE_CELL_SIZE) - 1;
+        maxCol = Math.ceil(((scrollX + viewW) / currentTreeZoom) / TREE_CELL_SIZE) + 1;
+        minRow = Math.floor(((scrollY / currentTreeZoom) - TREE_PADDING_TOP) / TREE_CELL_SIZE) - 1;
+        maxRow = Math.ceil((((scrollY + viewH) / currentTreeZoom) - TREE_PADDING_TOP) / TREE_CELL_SIZE) + 1;
+    }
 
-    // Grab the active timeline path for highlighting
     const activePath = getFullLinePath();
-
-    // Smooth out the elbows where lines change direction from 90 to 45 degrees
     treeCtx.lineCap = 'round';
     treeCtx.lineJoin = 'round';
-
-    // Phase 1: Draw interconnecting branch lines
     treeCtx.lineWidth = 2;
     treeCtx.strokeStyle = THEME.treeBranchColor;
 
     let drawnInactiveSegments = new Set();
     let drawnActiveSegments = new Set();
 
-    // Helper to slice long lines into segments and prevent overlapping double-draws
     function traceSegment(x1, y1, x2, y2, isActive) {
         let key = `${x1.toFixed(1)},${y1.toFixed(1)}-${x2.toFixed(1)},${y2.toFixed(1)}`;
         let targetSet = isActive ? drawnActiveSegments : drawnInactiveSegments;
-
         if (!targetSet.has(key)) {
             targetSet.add(key);
             treeCtx.moveTo(x1, y1);
@@ -704,128 +730,97 @@ function renderTreeCanvas() {
         }
     }
 
-    // Phase 1a: Draw all INACTIVE lines inside a single path shape
-    treeCtx.globalAlpha = 0.35;
-    treeCtx.beginPath();
-    for (let [node, pos] of treeLayout.entries()) {
-        if (node.parent) {
-            let parentPos = treeLayout.get(node.parent);
+    // Helper to draw lines so we can call it twice (Inactive then Active)
+    function drawTreeLines(isActivePass) {
+        treeCtx.globalAlpha = isActivePass ? 1.0 : 0.35;
+        treeCtx.beginPath();
+        for (let [node, pos] of treeLayout.entries()) {
+            if (node.parent) {
+                let parentPos = treeLayout.get(node.parent);
+                if (Math.max(pos.col, parentPos.col) < minCol || Math.min(pos.col, parentPos.col) > maxCol) continue;
+                if (Math.max(pos.row, parentPos.row) < minRow || Math.min(pos.row, parentPos.row) > maxRow) continue;
 
-            if (Math.max(pos.col, parentPos.col) < minCol || Math.min(pos.col, parentPos.col) > maxCol) continue;
-            if (Math.max(pos.row, parentPos.row) < minRow || Math.min(pos.row, parentPos.row) > maxRow) continue;
+                let isActiveLine = activePath.includes(node) && activePath.includes(node.parent);
+                if (isActiveLine === isActivePass) {
 
-            let isActiveLine = activePath.includes(node) && activePath.includes(node.parent);
-            if (!isActiveLine) {
-                let startX = parentPos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-                let startY = parentPos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
-                let endX = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-                let endY = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
+                    let start = getTreePx(parentPos);
+                    let end = getTreePx(pos);
 
-                if (pos.row === parentPos.row) {
-                    // Straight horizontal
-                    traceSegment(startX, startY, endX, endY, false);
-                } else {
-                    // Break vertical drop into grid-cell increments to deduplicate overlaps perfectly
-                    let currY = startY;
-                    let turnY = endY - TREE_CELL_SIZE;
-                    while (currY < turnY - 1) {
-                        let nextY = currY + TREE_CELL_SIZE;
-                        if (nextY > turnY) nextY = turnY;
-                        traceSegment(startX, currY, startX, nextY, false);
-                        currY = nextY;
+                    if (pos.row === parentPos.row) {
+                        traceSegment(start.x, start.y, end.x, end.y, isActivePass);
+                    } else {
+                        if (treeOrientation === 'vertical') {
+                            // Diagonal Step-Right (Vertical Tree)
+                            let currX = start.x;
+                            let turnX = end.x - TREE_CELL_SIZE;
+                            while (currX < turnX - 1) {
+                                let nextX = currX + TREE_CELL_SIZE;
+                                if (nextX > turnX) nextX = turnX;
+                                traceSegment(currX, start.y, nextX, start.y, isActivePass);
+                                currX = nextX;
+                            }
+                            traceSegment(turnX, start.y, end.x, end.y, isActivePass);
+                        } else {
+                            // Diagonal Step-Down (Horizontal Tree)
+                            let currY = start.y;
+                            let turnY = end.y - TREE_CELL_SIZE;
+                            while (currY < turnY - 1) {
+                                let nextY = currY + TREE_CELL_SIZE;
+                                if (nextY > turnY) nextY = turnY;
+                                traceSegment(start.x, currY, start.x, nextY, isActivePass);
+                                currY = nextY;
+                            }
+                            traceSegment(start.x, turnY, end.x, end.y, isActivePass);
+                        }
                     }
-                    // Final 45-degree turn
-                    traceSegment(startX, turnY, endX, endY, false);
                 }
             }
         }
+        treeCtx.stroke();
     }
-    treeCtx.stroke();
 
-    // Phase 1b: Draw all ACTIVE lines overtop opaquely
-    treeCtx.globalAlpha = 1.0;
-    treeCtx.beginPath();
-    for (let [node, pos] of treeLayout.entries()) {
-        if (node.parent) {
-            let parentPos = treeLayout.get(node.parent);
-
-            if (Math.max(pos.col, parentPos.col) < minCol || Math.min(pos.col, parentPos.col) > maxCol) continue;
-            if (Math.max(pos.row, parentPos.row) < minRow || Math.min(pos.row, parentPos.row) > maxRow) continue;
-
-            let isActiveLine = activePath.includes(node) && activePath.includes(node.parent);
-            if (isActiveLine) {
-                let startX = parentPos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-                let startY = parentPos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
-                let endX = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-                let endY = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
-
-                if (pos.row === parentPos.row) {
-                    traceSegment(startX, startY, endX, endY, true);
-                } else {
-                    let currY = startY;
-                    let turnY = endY - TREE_CELL_SIZE;
-                    while (currY < turnY - 1) {
-                        let nextY = currY + TREE_CELL_SIZE;
-                        if (nextY > turnY) nextY = turnY;
-                        traceSegment(startX, currY, startX, nextY, true);
-                        currY = nextY;
-                    }
-                    traceSegment(startX, turnY, endX, endY, true);
-                }
-            }
-        }
-    }
-    treeCtx.stroke();
+    drawTreeLines(false); // Inactive
+    drawTreeLines(true);  // Active
 
     // Phase 2: Draw the stone nodes
     for (let [node, pos] of treeLayout.entries()) {
         if (pos.col < minCol || pos.col > maxCol || pos.row < minRow || pos.row > maxRow) continue;
 
-        let x = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-        let y = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
+        let pxPos = getTreePx(pos);
+        let x = pxPos.x;
+        let y = pxPos.y;
 
-        // Ensure all nodes remain fully opaque regardless of line state
         treeCtx.globalAlpha = 1.0;
 
-        // 1. Standard solid red background highlight for the CURRENT node
         if (node === currentNode) {
             treeCtx.fillStyle = '#A33C3C';
             treeCtx.beginPath();
-            // Dynamically scale the highlight down if it's the root node
             let highlightRadius = (node === rootNode) ? (TREE_RADIUS * 0.55 + 3) : (TREE_RADIUS + 4);
             treeCtx.arc(x, y, highlightRadius, 0, 2 * Math.PI);
             treeCtx.fill();
         }
 
-        // 2. Dashed highlight specifically for the EDITED node
         if (isEditModeActive && node === nodeBeingEdited) {
             treeCtx.beginPath();
-            // Dynamically scale the edit ring down if it's the root node
             let editRadius = (node === rootNode) ? (TREE_RADIUS * 0.55 + 3) : (TREE_RADIUS + 4);
             treeCtx.arc(x, y, editRadius, 0, 2 * Math.PI);
             treeCtx.lineWidth = 2.5;
             treeCtx.strokeStyle = '#d46666';
             treeCtx.setLineDash([4, 3]);
-
             treeCtx.shadowColor = 'rgba(0, 0, 0, 0.9)';
             treeCtx.shadowBlur = 3;
-            treeCtx.shadowOffsetX = 0;
-            treeCtx.shadowOffsetY = 0;
-
             treeCtx.stroke();
-
             treeCtx.shadowColor = 'transparent';
             treeCtx.shadowBlur = 0;
             treeCtx.setLineDash([]);
         }
 
-        // 3. Draw a small sphere for the root "Empty Board" node
         if (node === rootNode) {
             treeCtx.fillStyle = THEME.treeBranchColor;
             treeCtx.beginPath();
             treeCtx.arc(x, y, TREE_RADIUS * 0.55, 0, 2 * Math.PI);
             treeCtx.fill();
-            continue; // Skip standard black/white stone rendering
+            continue;
         }
 
         treeCtx.fillStyle = node.color;
@@ -839,11 +834,7 @@ function renderTreeCanvas() {
 
         if (node.displayMoveNum && node.displayMoveNum > 0) {
             let textToDraw = node.gtpCoord === 'resign' ? 'R' : String(node.displayMoveNum);
-
-            // --- Maximize text scale to fit inside the 26px circle when zoomed out ---
             let fontSize = 11;
-
-            // At 4 clicks out (0.6x scale), inflate the font
             if (currentTreeZoom < 0.65) {
                 let len = textToDraw.length;
                 if (len === 1) fontSize = 19;
@@ -855,7 +846,6 @@ function renderTreeCanvas() {
             treeCtx.fillStyle = (node.color === 'black') ? '#ffffff' : '#000000';
             treeCtx.textAlign = 'center';
             treeCtx.textBaseline = 'middle';
-
             treeCtx.fillText(textToDraw, x, y + 1);
         }
     }
@@ -907,10 +897,8 @@ treeCanvas.addEventListener('click', (event) => {
     const mouseY = ((event.clientY - rect.top) + treeContainer.scrollTop) / currentTreeZoom;
 
     for (let [node, pos] of treeLayout.entries()) {
-
-        let x = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-        let y = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
-        let dist = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
+        let p = getTreePx(pos);
+        let dist = Math.sqrt(Math.pow(mouseX - p.x, 2) + Math.pow(mouseY - p.y, 2));
 
         if (dist <= TREE_RADIUS + 4) {
             currentNode = node;
@@ -2805,13 +2793,12 @@ document.addEventListener('keydown', (e) => {
             const container = document.getElementById('tree-container');
 
             if (pos && container) {
-                const treeX = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-                const treeY = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
+                let p = getTreePx(pos);
 
                 // 2. Adjust for container scrolling to get the absolute screen coordinates
                 const rect = container.getBoundingClientRect();
-                const screenX = rect.left + treeX - container.scrollLeft;
-                const screenY = rect.top + treeY - container.scrollTop;
+                const screenX = rect.left + p.x - container.scrollLeft;
+                const screenY = rect.top + p.y - container.scrollTop;
 
                 // 3. Create a fake DOM element so showConfirmModal can measure its bounding box
                 fakeAnchor = {
@@ -2858,8 +2845,13 @@ document.addEventListener('keydown', (e) => {
         performRedo();
     }
 
-    // Tree Navigation Hotkeys
-    if (key === 'arrowleft') {
+    // Tree Navigation Hotkeys (Orientation Aware)
+    let navBackKey = treeOrientation === 'vertical' ? 'arrowup' : 'arrowleft';
+    let navForwardKey = treeOrientation === 'vertical' ? 'arrowdown' : 'arrowright';
+    let cyclePrevKey = treeOrientation === 'vertical' ? 'arrowleft' : 'arrowup';
+    let cycleNextKey = treeOrientation === 'vertical' ? 'arrowright' : 'arrowdown';
+
+    if (key === navBackKey) {
         if (ctrl) {
             currentNode = rootNode;
             syncAndRender();
@@ -2870,7 +2862,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
 
-    if (key === 'arrowright') {
+    if (key === navForwardKey) {
         if (ctrl) {
             while(currentNode.children.length > 0) currentNode = currentNode.children[0];
             syncAndRender();
@@ -2894,8 +2886,8 @@ document.addEventListener('keydown', (e) => {
         syncAndRender();
     }
 
-    if (key === 'arrowup' || key === 'arrowdown') {
-        if (key === 'arrowup' && shift) {
+    if (key === cyclePrevKey || key === cycleNextKey) {
+        if (key === cyclePrevKey && shift) {
             // Warp back up to the primary branch intersection
             let temp = currentNode;
             while (temp && temp.parent) {
@@ -2911,10 +2903,10 @@ document.addEventListener('keydown', (e) => {
             const siblings = currentNode.parent.children;
             const currentIndex = siblings.indexOf(currentNode);
 
-            if (key === 'arrowup' && currentIndex > 0) {
+            if (key === cyclePrevKey && currentIndex > 0) {
                 currentNode = siblings[currentIndex - 1];
                 syncAndRender();
-            } else if (key === 'arrowdown' && currentIndex < siblings.length - 1) {
+            } else if (key === cycleNextKey && currentIndex < siblings.length - 1) {
                 currentNode = siblings[currentIndex + 1];
                 syncAndRender();
             }
@@ -3029,9 +3021,8 @@ treeCanvas.addEventListener('contextmenu', (event) => {
 
     for (let [node, pos] of treeLayout.entries()) {
         if (node === rootNode) continue;
-        let x = pos.col * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2);
-        let y = pos.row * TREE_CELL_SIZE + (TREE_CELL_SIZE / 2) + TREE_PADDING_TOP;
-        let dist = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
+        let p = getTreePx(pos);
+        let dist = Math.sqrt(Math.pow(mouseX - p.x, 2) + Math.pow(mouseY - p.y, 2));
 
         if (dist <= TREE_RADIUS + 4) {
             nodeTargetedByContext = node;
