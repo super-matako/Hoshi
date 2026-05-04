@@ -1453,33 +1453,7 @@ function drawTreeMarkers() {
 
     if (appSettings.optAltMove && currentNode.parent && currentNode.parent.children.length > 1) {
 
-        // PRE-CALCULATE PARENT ANALYSIS DATA ONCE TO SAVE CPU
-        let pMoves = null;
-        let parentWasBlackToPlay = false;
-        let absoluteBestMove = null;
-        let bestScoreLead = 0;
-        let parentHasAnalysis = false;
-
-        if (showKataBubbles && (currentNode.parent.visits >= 25 || isAnalysisPaused) && currentNode.parent.kataMoveInfos && currentNode.parent.kataMoveInfos.length > 0) {
-            parentHasAnalysis = true;
-            pMoves = [...currentNode.parent.kataMoveInfos];
-            parentWasBlackToPlay = currentNode.parent.color === 'white' || currentNode.parent === rootNode;
-
-            absoluteBestMove = pMoves.reduce((best, current) => {
-                let isBetter = false;
-                if (parentWasBlackToPlay) {
-                    if (current.winrate > best.winrate) isBetter = true;
-                    else if (current.winrate === best.winrate && current.scoreLead > best.scoreLead) isBetter = true;
-                } else {
-                    if (current.winrate < best.winrate) isBetter = true;
-                    else if (current.winrate === best.winrate && current.scoreLead < best.scoreLead) isBetter = true;
-                }
-                return isBetter ? current : best;
-            });
-            bestScoreLead = absoluteBestMove.scoreLead;
-        }
-
-        for (let i = 0; i < currentNode.parent.children.length; i++) {
+            for (let i = 0; i < currentNode.parent.children.length; i++) {
             let sibling = currentNode.parent.children[i];
 
             if (sibling === currentNode) continue;
@@ -1487,73 +1461,6 @@ function drawTreeMarkers() {
             if (sibling.x !== null && sibling.y !== null) {
                 const px = MARGIN_X + (sibling.x * CELL_WIDTH);
                 const py = MARGIN_Y + (sibling.y * CELL_HEIGHT);
-
-                // --- DRAW KATA BUBBLE FOR ALT MOVES ---
-                if (!boardState[sibling.x][sibling.y]) {
-                    let loss = null;
-                    let isBest = false;
-
-                    // 1. Try to get the score from the active parent sweep
-                    if (parentHasAnalysis) {
-                        let playedMoveInfo = pMoves.find(m => m.move === sibling.gtpCoord);
-                        if (playedMoveInfo) {
-                            loss = parentWasBlackToPlay ? (bestScoreLead - playedMoveInfo.scoreLead) : (playedMoveInfo.scoreLead - bestScoreLead);
-                            isBest = (playedMoveInfo.move === absoluteBestMove.move);
-                        } else if (sibling.scoreLead !== null) {
-                            // Sibling has a score, but wasn't in the active sweep
-                            loss = parentWasBlackToPlay ? (bestScoreLead - sibling.scoreLead) : (sibling.scoreLead - bestScoreLead);
-                        }
-                    }
-                    // 2. Fallback: Compare the sibling's score directly to the parent's score
-                    else if (sibling.scoreLead !== null && currentNode.parent.scoreLead !== null) {
-                        let pBlackToPlay = currentNode.parent.color === 'white' || currentNode.parent === rootNode;
-                        loss = pBlackToPlay ? (currentNode.parent.scoreLead - sibling.scoreLead) : (sibling.scoreLead - currentNode.parent.scoreLead);
-                    }
-
-                    // 3. Render the bubble if we successfully calculated a loss!
-                    if (loss !== null) {
-                        if (loss < 0) loss = 0;
-                        let siblingScoreStr = loss <= 0.05 ? "0.0" : "-" + loss.toFixed(1);
-
-                        ctx.save();
-                        if (isBest) ctx.fillStyle = THEME.bubbleBest;
-                        else if (loss <= 2.0) ctx.fillStyle = THEME.bubbleGood;
-                        else if (loss <= 4.0) ctx.fillStyle = THEME.bubbleOkay;
-                        else if (loss <= 7.0) ctx.fillStyle = THEME.bubbleBad;
-                        else ctx.fillStyle = THEME.bubbleTerrible;
-
-                        ctx.globalAlpha = 1.0;
-                        ctx.beginPath();
-                        ctx.ellipse(px, py, CELL_WIDTH * 0.495, CELL_WIDTH * 0.495, 0, 0, 2 * Math.PI);
-
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                        ctx.shadowBlur = 4;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 2;
-                        ctx.fill();
-                        ctx.restore();
-
-                        activeBubbles.add(`${sibling.x},${sibling.y}`);
-
-                        let key = `${sibling.x},${sibling.y}`;
-                        let hasPermanentSymbol = currentNode.markup.has(key);
-                        let isHoveringSymbol = hoverPos && hoverPos.x === sibling.x && hoverPos.y === sibling.y && currentMode.startsWith('mark_');
-
-                        let textAlpha = (hasPermanentSymbol || isHoveringSymbol) ? 0.5 : 1.0;
-
-                        textDrawQueue.push({
-                            text: siblingScoreStr,
-                            x: px,
-                            y: py + 1,
-                            alpha: textAlpha,
-                            fillStyle: THEME.bubbleTextColor,
-                            font: `bold ${Math.max(11, CELL_WIDTH * 0.38)}px sans-serif`,
-                            shadowColor: 'rgba(0, 0, 0, 1.0)',
-                            shadowBlur: 4
-                        });
-                    }
-                }
-                // --- END KATA BUBBLE ---
 
                 let actualLineWidth = THEME.markerNextAltLineWidth;
                 let desiredStrokeColor = sibling.color === 'black' ? THEME.markerNextAltBlackColor : THEME.markerNextAltWhiteColor;
