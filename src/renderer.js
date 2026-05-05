@@ -2061,26 +2061,36 @@ function animateStonePickup(timestamp) {
     requestAnimationFrame(animateStonePickup);
 }
 
-// --- MOUSE WHEEL TREE NAVIGATION ---
-let wheelThrottle = false;
+// --- GLOBAL MOUSE WHEEL TREE NAVIGATION ---
+let lastGlobalWheelTime = 0;
 
-canvas.addEventListener('wheel', (event) => {
-    // Prevent the entire webpage from scrolling when the mouse is over the board
+window.addEventListener('wheel', (event) => {
+    // 1. ONLY let settings modals and popovers scroll normally.
+    // We INTENTIONALLY hijack the board, tree, comments, and sidebars!
+    if (
+        event.target.closest('.info-popover') ||             // Expanded info popovers
+        document.querySelector('.modal-overlay.active')      // Any active modal/settings menu
+    ) {
+        return; // Exit early, let the UI menus scroll natively
+    }
+
+    // 2. Hijack the scroll event everywhere else to navigate the game
     event.preventDefault();
 
-    // Throttle the input to prevent trackpad hyper-scrolling
-    if (wheelThrottle) return;
+    // 3. Throttle the wheel events (Trackpads fire hundreds of tiny wheel events per second)
+    const now = Date.now();
+    if (now - lastGlobalWheelTime < 60) return; // 60ms cooldown between moves
+    lastGlobalWheelTime = now;
 
-    wheelThrottle = true;
-    setTimeout(() => { wheelThrottle = false; }, 80);
-
-    // Scroll Down -> Go Forward, Scroll Up -> Go Back
+    // 4. Trigger the navigation using your existing traversal functions
     if (event.deltaY > 0) {
-        traverseForward(1);
+        // Scrolling down -> Move Forward
+        if (typeof traverseForward === 'function') traverseForward(1);
     } else if (event.deltaY < 0) {
-        traverseBack(1);
+        // Scrolling up -> Move Backward
+        if (typeof traverseBack === 'function') traverseBack(1);
     }
-}, { passive: false }); // Strict requirement for preventDefault() on wheel events
+}, { passive: false });
 
 canvas.addEventListener('mousemove', (event) => {
     if (isShiftDown !== event.shiftKey) { isShiftDown = event.shiftKey; render(); }
