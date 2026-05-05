@@ -23,12 +23,12 @@ A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 * `Right Arrow` - Move forward 1 move
 * `Shift` + `Left Arrow` / `Page Up` - Move back 15 moves
 * `Shift` + `Right Arrow` / `Page Down` - Move forward 15 moves
-* `Ctrl` + `Left Arrow` / `Home` - Jump to the start of the game (Root)
-* `Ctrl` + `Right Arrow` / `End` - Jump to the very end of the current branch
+* `Ctrl` + `Left Arrow` / `Home` - Jump to the start of the game
+* `Ctrl` + `Right Arrow` / `End` - Jump to the end of the current branch
 * `Up Arrow` - Switch to the previous alternative variation
 * `Down Arrow` - Switch to the next alternative variation
 * `Shift` + `Up Arrow` - Warp backward directly to the primary branch intersection
-* `Scroll wheel` - Move in navigation tree (as long as the mouse is on the board)
+* `Scroll wheel` - Move in navigation tree
 * `Mouse back` / `Mouse forward` - Switch between alternative variations
 
 ### Tools & Markup
