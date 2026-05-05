@@ -2,7 +2,8 @@
 
 A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 
-<img width="1920" height="1043" alt="Hoshi-Screenshot" src="https://github.com/user-attachments/assets/df65509d-bd64-4888-9163-1047c632d623" />
+<img width="1920" height="1043" alt="Hoshi-Screenshot" src="https://github.com/user-attachments/assets/920ee4ea-5125-437c-a050-bb6762e5413e" />
+
 
 ## Features
 * **Markup & Analysis:** Full suite of SGF markup tools, local KataGo evaluation bubbles, and score estimation graphs.
