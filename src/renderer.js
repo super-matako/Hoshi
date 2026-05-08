@@ -5132,7 +5132,30 @@ function initInputUX() {
     });
 }
 
+// ============================================================================
+// 23. OS-SPECIFIC UI CONFIGURATION
+// ============================================================================
+async function configureOSSpecificUI() {
+    try {
+        const profile = await window.electronAPI.getSystemProfile();
+        const autoSetupBtn = document.getElementById('btn-auto-download');
+
+        if (autoSetupBtn) {
+            if (profile.os === 'macos' || profile.os === 'linux') {
+                autoSetupBtn.disabled = true;
+                autoSetupBtn.title = "Auto-Setup is currently only available on Windows.";
+                autoSetupBtn.style.opacity = '0.5';
+                autoSetupBtn.style.cursor = 'not-allowed';
+                autoSetupBtn.innerText = "Auto-Setup (Windows Only)";
+            }
+        }
+    } catch (error) {
+        console.error("Failed to check OS for UI configuration:", error);
+    }
+}
+
 document.fonts.ready.then(() => {
     render();
     initInputUX();
+    configureOSSpecificUI();
 });
