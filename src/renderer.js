@@ -5132,7 +5132,6 @@ function initInputUX() {
     });
 }
 
-// ============================================================================
 // 23. OS-SPECIFIC UI CONFIGURATION
 // ============================================================================
 async function configureOSSpecificUI() {
@@ -5142,11 +5141,8 @@ async function configureOSSpecificUI() {
 
         if (autoSetupBtn) {
             if (profile.os === 'macos' || profile.os === 'linux') {
-                autoSetupBtn.disabled = true;
-                autoSetupBtn.title = "Auto-Setup is currently only available on Windows.";
-                autoSetupBtn.style.opacity = '0.5';
-                autoSetupBtn.style.cursor = 'not-allowed';
-                autoSetupBtn.innerText = "Auto-Setup (Windows Only)";
+                // Hide the button from the layout on Mac and Linux
+                autoSetupBtn.style.display = 'none';
             }
         }
     } catch (error) {

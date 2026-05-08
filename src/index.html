@@ -194,7 +194,7 @@
         textarea::-webkit-scrollbar-corner, .info-popover::-webkit-scrollbar-corner { background: var(--input-bg); }
 
         /* Component 4: Comments Box */
-        .comments-box { width: 100%; height: 112px; resize: none; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); transition: border-color 0.2s; }
+        .comments-box { width: 100%; flex: 1; min-height: 32px; resize: none; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: inherit; font-size: 0.85rem; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); transition: border-color 0.2s; }
         .comments-box:focus { outline: none; border-color: var(--accent); background: var(--input-bg); }
 
         /* Component 5: Tools & Actions Toolbars */
@@ -621,7 +621,7 @@
                 </div>
             </div>
 
-            <div class="panel" style="flex: none; padding: 8px 10px;">
+            <div class="panel" style="flex: 0 1 130px; min-height: 48px; padding: 8px 10px; display: flex; flex-direction: column;">
                 <textarea id="node-comment" class="comments-box" placeholder="Add comments for this move..."></textarea>
             </div>
 
