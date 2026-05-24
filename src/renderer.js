@@ -2924,6 +2924,26 @@ const infoPopover = document.getElementById('info-popover');
 const infoIcon = document.getElementById('open-info-modal');
 let nodeTargetedByContext = null;
 
+const resultInput = document.getElementById('result-input');
+const resultDoor = document.getElementById('result-door');
+
+if (resultDoor && resultInput) {
+    resultDoor.addEventListener('click', () => {
+        resultDoor.classList.toggle('open');
+        if (resultDoor.classList.contains('open')) {
+            resultDoor.title = "Click to hide";
+            resultInput.focus();
+        } else {
+            resultDoor.title = "Click to reveal";
+            resultInput.blur();
+        }
+    });
+
+    resultInput.addEventListener('input', (e) => {
+        originalGameResult = e.target.value;
+    });
+}
+
 // Ensures the result tag in the UI reflects a resignation if it exists on the main line
 function updateResultFromMainLine() {
     let temp = rootNode;
@@ -2932,37 +2952,15 @@ function updateResultFromMainLine() {
         temp = temp.children[0];
     }
 
-    const resultInput = document.getElementById('result-input');
-    const revealBtn = document.getElementById('reveal-result-btn');
-    if (!resultInput || !revealBtn) return;
+    if (!resultInput) return;
 
     if (temp.gtpCoord === 'resign') {
         const winner = temp.color === 'black' ? 'W' : 'B';
         resultInput.value = `${winner}+Resign`;
-        revealBtn.style.display = 'block';
     } else {
         // Restores the original SGF file result if the resignation node is deleted
         resultInput.value = originalGameResult;
-
-        if (originalGameResult !== "") {
-            revealBtn.style.display = 'block';
-        } else {
-            revealBtn.style.display = 'none';
-        }
     }
-}
-
-const resultInput = document.getElementById('result-input');
-const revealBtn = document.getElementById('reveal-result-btn');
-
-if (revealBtn && resultInput) {
-    revealBtn.addEventListener('click', () => {
-        if (resultInput.value !== "") revealBtn.style.display = 'none';
-    });
-
-    resultInput.addEventListener('click', () => {
-        if (resultInput.value !== "") revealBtn.style.display = 'block';
-    });
 }
 
 let globalMousedownTarget = null;
@@ -3434,7 +3432,11 @@ function parseSGF(sgfText) {
     document.getElementById('info-overtime').value = "";
     document.getElementById('info-komi').value = "6.5";
     document.getElementById('result-input').value = "";
-    document.getElementById('reveal-result-btn').style.display = 'none';
+    const rDoor3 = document.getElementById('result-door');
+    if (rDoor3) {
+        rDoor3.classList.remove('open');
+        rDoor3.title = "Click to reveal";
+    }
     document.getElementById('info-summary').value = "";
     document.getElementById('info-annotator').value = "";
     document.getElementById('info-copyright').value = "";
@@ -3530,7 +3532,11 @@ function parseSGF(sgfText) {
                 if (nodeProps['RE']) {
                     originalGameResult = nodeProps['RE'][0];
                     document.getElementById('result-input').value = nodeProps['RE'][0];
-                    document.getElementById('reveal-result-btn').style.display = 'block';
+                    const rDoor2 = document.getElementById('result-door');
+                    if (rDoor2) {
+                        rDoor2.classList.remove('open');
+                        rDoor2.title = "Click to reveal";
+                    }
                 }
             }
 
@@ -4836,7 +4842,11 @@ document.getElementById('btn-new').addEventListener('click', (e) => {
         document.getElementById('info-overtime').value = "";
         document.getElementById('info-komi').value = "6.5";
         document.getElementById('result-input').value = "";
-        document.getElementById('reveal-result-btn').style.display = 'none';
+        const rDoor1 = document.getElementById('result-door');
+        if (rDoor1) {
+            rDoor1.classList.remove('open');
+            rDoor1.title = "Click to reveal";
+        }
         document.getElementById('info-summary').value = "";
         document.getElementById('info-annotator').value = "";
         document.getElementById('info-copyright').value = "";

@@ -242,10 +242,18 @@
         .info-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .info-label { font-size: 0.85rem; color: var(--text-muted); width: 85px; flex-shrink: 0; }
 
-        /* Game Result Spoiler Button Overlay */
-        .result-input { text-align: center; font-weight: bold; cursor: pointer; }
-        .reveal-btn { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--input-bg); color: var(--text-muted); border: 1px solid transparent; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: 600; transition: all 0.1s; }
-        .reveal-btn:hover { color: var(--text-main); border-color: var(--accent); }
+        /* Game Result Sliding Door */
+        .result-container { position: relative; width: 100%; display: flex; overflow: hidden; border-radius: 4px; background: var(--input-bg); border: 1px solid var(--border-color); box-sizing: border-box; transition: border-color 0.2s; }
+        .result-container:focus-within { border-color: var(--accent); }
+        .result-input { font-weight: bold; width: 100%; border: none !important; outline: none !important; background: transparent !important; }
+        .sliding-door { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--panel-bg); color: var(--text-muted); border-left: 1px solid transparent; border-radius: 3px; cursor: pointer; font-family: inherit; font-size: 0.85rem; font-weight: normal; display: flex; align-items: center; justify-content: center; box-sizing: border-box; transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), background 0.2s, border-color 0.2s, color 0.2s; z-index: 5; user-select: none; }
+        .sliding-door:hover { color: var(--text-main); }
+        .door-arrow { position: absolute; left: -3px; width: 32px; display: flex; justify-content: center; opacity: 0; transition: opacity 0.2s ease-in; font-weight: bold; }
+        .door-text { transition: opacity 0.15s; }
+        .sliding-door.open { transform: translateX(calc(100% - 32px)); border-radius: 0 3px 3px 0; background: var(--panel-bg); color: var(--text-muted); border-left-color: var(--border-color); }
+        .sliding-door.open:hover { color: var(--text-main); }
+        .sliding-door.open .door-text { opacity: 0; }
+        .sliding-door.open .door-arrow { opacity: 1; }
 
         /* Drag & Drop SGF Overlay */
         .drag-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 59, 50, 0.9); color: var(--accent); z-index: 9999; align-items: center; justify-content: center; font-size: 2rem; font-weight: 600; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
@@ -714,11 +722,14 @@
             <div class="info-row"><span class="info-label">Main Time</span><input type="text" class="info-input" id="info-time" placeholder="-" style="background: var(--input-bg);"></div>
             <div class="info-row"><span class="info-label">Overtime</span><input type="text" class="info-input" id="info-overtime" placeholder="-" style="background: var(--input-bg);"></div>
 
-            <div class="info-row" style="margin-top: 15px;">
+            <div class="info-row">
                 <span class="info-label">Result</span>
-                <div style="position: relative; width: 100%;">
-                    <input type="text" class="info-input result-input" id="result-input" placeholder="-" style="background: var(--input-bg);" title="Click to hide" readonly>
-                    <button class="reveal-btn" id="reveal-result-btn" style="display: none;">Click to reveal</button>
+                <div class="result-container">
+                    <input type="text" class="info-input result-input" id="result-input" placeholder="-">
+                    <div class="sliding-door" id="result-door" title="Click to reveal">
+                        <span class="door-arrow">◄</span>
+                        <span class="door-text">Click to reveal</span>
+                    </div>
                 </div>
             </div>
         </div>
