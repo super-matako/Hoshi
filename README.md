@@ -2,15 +2,15 @@
 
 A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 
-<img width="1920" height="1043" alt="Hoshi-Screenshot" src="https://github.com/user-attachments/assets/a80e3dc7-d24f-48bd-a5fd-9e1d5dd97923" />
+<img width="1800" height="977" alt="Hoshi-Screenshot" src="https://github.com/user-attachments/assets/86721218-f136-427f-80a2-dd061c7ff98e" />
 
 ## Features
-* **Markup & Analysis:** Full suite of SGF markup tools, local KataGo evaluation bubbles, and score estimation graphs.
+* **Markup & Analysis:** SGF markup tools, local KataGo evaluation bubbles, and score estimation graphs.
 * **Interactive Stone Editing:** Right-click a stone on the board (or a node in the tree) to pick it up and move it. Hoshi will automatically recalculate the timelines and board states for all future variations. 
 
 ## KataGo Engine
-* Comes with an **Auto-setup** feature, that scans your system and recommends a KataGo engine version to download with the click of a button.
-* Alternatively, you can always provide your own, custom KataGo files.
+* Provide your own engine files or use **Auto-setup** feature, that scans your system and recommends a KataGo engine version to download.
+* Select number of sweeps (up to 5) and depth of visits per sweep.
 
 ## How to Download
 1. Go to the [Releases page](https://github.com/super-matako/Hoshi/releases/tag/v1.1.1).
@@ -48,7 +48,7 @@ A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 * `Spacebar` - Play / Pause KataGo Analysis
 * `C` - Toggle Score Estimate calculation
 * `Delete` / `Backspace` - Delete current node (and all future variations)
-* `Ctrl` + `Z` - Undo (Stone placement, node deletion, or stone edit)
+* `Ctrl` + `Z` - Undo
 * `Ctrl` + `Y` - Redo
 * `Escape` - Cancel active stone edit
 
@@ -64,7 +64,7 @@ A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 
 ## v1.1.1
 ### Auto-setup feature
-No more bundling with a KataGo folder - if you don't already have KataGo, there is now a nifty `Auto-setup` button in the Options menu, allowing you to easily download the appropriate KataGo version for your system.
+No more bundling with a KataGo folder; if you don't already have KataGo, there is now a nifty `Auto-setup` button in the Options menu, allowing you to easily download the appropriate KataGo version for your system.
 
 ### Wide-screen support
 Space is used to a better extent, depending on monitor size.
