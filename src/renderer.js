@@ -65,7 +65,7 @@ let stoneCache = { black: null, white: [null, null, null], cellWidth: 0 };
          const cx = cacheWidth / 2;
          const cy = cacheHeight / 2;
 
-         const radiusMultiplier = color === 'black' ? 0.495 : 0.488367;
+         const radiusMultiplier = 0.485;
          const radiusX = CELL_WIDTH * radiusMultiplier;
          const radiusY = CELL_WIDTH * radiusMultiplier;
 
@@ -376,6 +376,7 @@ let isAnalysisPaused = true;
 let currentAnalysisPhase = 1;
 let currentAnalysisPath = []; // Tracks the exact branch KataGo is actively evaluating
 let currentAnalysisLineStr = "";
+let currentEngineSweepTurn = null; // Tracks exactly where KataGo just evaluated
 let showingScoreEstimate = false;
 
 let currentKomi = 6.5;
@@ -422,9 +423,12 @@ let appSettings = {
     optAltMove: true,
     optAltNextMove: true,
     optCoordHighlight: true,
+    optShowCoords: true,
     optSaveConfirm: true,
     optNewConfirm: true,
     optDeleteConfirm: true,
+    kataPassCount: 3,
+    kataVisits: [1, 100, 1000],
     engineExe: './KataGo/katago.exe',
     engineNet: './KataGo/default_model.bin.gz',
     engineCfg: './KataGo/analysis_example.cfg',
@@ -435,6 +439,13 @@ let savedConfig = localStorage.getItem(SETTINGS_KEY);
 if (savedConfig) {
     let parsed = JSON.parse(savedConfig);
     appSettings = { ...appSettings, ...parsed };
+
+    // Automatically migrate old save configurations to the new array setup
+    if (parsed.kataVisits1 !== undefined && !parsed.kataVisits) {
+        appSettings.kataPassCount = 3;
+        appSettings.kataVisits = [parsed.kataVisits1, parsed.kataVisits2, parsed.kataVisits3];
+    }
+
     if (parsed.hotkeys) {
         appSettings.hotkeys = { ...appSettings.hotkeys, ...parsed.hotkeys };
     }
@@ -451,7 +462,7 @@ function resizeBoard() {
     const container = document.querySelector('.board-container');
     if (!container || !canvas) return;
 
-    const targetRatio = 1.071;
+    const targetRatio = 1.0;
     let w = container.clientWidth;
     let h = container.clientHeight;
 
@@ -1087,6 +1098,7 @@ function drawStarPoints() {
 }
 
 function drawCoordinates() {
+    if (!appSettings.optShowCoords) return;
     const letterFontSize = Math.max(9, Math.floor(MARGIN_X * THEME.coordLetterSizeMultiplier));
     const numberFontSize = Math.max(9, Math.floor(MARGIN_X * THEME.coordNumberSizeMultiplier));
 
@@ -1166,8 +1178,9 @@ function drawKataSuggestions() {
 
     if (!showKataBubbles || !currentNode) return;
 
-    // Hide Kata bubbles until the node has received at least a 25-visit sweep.
-    if (!isAnalysisPaused && currentNode.visits < 25) return;
+    // Bubbles appear after Pass 2 finishes (or Pass 1 if there is only 1 pass)
+    let bubbleThreshold = appSettings.kataPassCount > 1 ? appSettings.kataVisits[1] : appSettings.kataVisits[0];
+    if (!isAnalysisPaused && currentNode.visits < bubbleThreshold) return;
 
     let isBlackToPlay = currentNode.color === 'white' || currentNode === rootNode;
     let moves = [];
@@ -1295,7 +1308,7 @@ function drawKataSuggestions() {
 
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.ellipse(px, py, CELL_WIDTH * 0.495, CELL_WIDTH * 0.495, 0, 0, 2 * Math.PI);
+        ctx.ellipse(px, py, CELL_WIDTH * 0.485, CELL_WIDTH * 0.485, 0, 0, 2 * Math.PI);
 
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur = 4;
@@ -1396,7 +1409,7 @@ function drawTreeMarkers() {
 
                 let actualLineWidth = 0;
                 let desiredStrokeColor = '';
-                let radiusMultiplier = 0.450;
+                let radiusMultiplier = 0.480;
 
                 if (i === 0) {
                     actualLineWidth = THEME.markerNextMainLineWidth;
@@ -1495,7 +1508,7 @@ function drawTreeMarkers() {
 
                 let actualLineWidth = THEME.markerNextAltLineWidth;
                 let desiredStrokeColor = sibling.color === 'black' ? THEME.markerNextAltBlackColor : THEME.markerNextAltWhiteColor;
-                let radiusMultiplier = 0.495;
+                let radiusMultiplier = 0.480;
 
                 const radiusX = CELL_WIDTH * radiusMultiplier;
                 const radiusY = CELL_WIDTH * radiusMultiplier;
@@ -1561,9 +1574,10 @@ function drawTreeMarkers() {
         }
 
         let scoreStr = null;
+        let scoreThreshold = appSettings.kataPassCount > 1 ? appSettings.kataVisits[1] : appSettings.kataVisits[0];
 
         // Calculate the relative score shift from the parent state (only if parent has sufficient visits)
-        if (currentNode.parent && (currentNode.parent.visits >= 25 || isAnalysisPaused) && currentNode.parent.kataMoveInfos && currentNode.parent.kataMoveInfos.length > 0) {
+        if (currentNode.parent && (currentNode.parent.visits >= scoreThreshold || isAnalysisPaused) && currentNode.parent.kataMoveInfos && currentNode.parent.kataMoveInfos.length > 0) {
             let pMoves = [...currentNode.parent.kataMoveInfos];
             let parentWasBlackToPlay = currentNode.parent.color === 'white' || currentNode.parent === rootNode;
 
@@ -1608,8 +1622,8 @@ function drawTreeMarkers() {
             scoreStr = (delta > 0 ? "+" : "") + delta.toFixed(1);
         }
 
-        // Hide the score on the current stone until it has received a proper 25-visit sweep
-        if (scoreStr !== null && showKataBubbles && (currentNode.visits >= 25 || isAnalysisPaused)) {
+        // Hide the score on the current stone until it has received a stable Phase 2 visit sweep
+        if (scoreStr !== null && showKataBubbles && (currentNode.visits >= scoreThreshold || isAnalysisPaused)) {
             currentStoneHasScoreText = true;
 
             let key = `${currentNode.x},${currentNode.y}`;
@@ -1981,6 +1995,7 @@ document.addEventListener('contextmenu', (e) => {
 
 let lastHoverKey = null;
 let isErasing = false;
+let eraseInitialMarkup = null;
 
 // Global Shift Tracker: Used to dynamically switch single-stone placement
 // into group-selection mode for markup tools.
@@ -2004,6 +2019,7 @@ canvas.addEventListener('mousedown', (event) => {
     if (event.button !== 0) return;
     if (currentMode === 'erase' && hoverPos) {
         isErasing = true;
+        eraseInitialMarkup = new Map(currentNode.markup); // Take snapshot before erasing
         let key = `${hoverPos.x},${hoverPos.y}`;
         if (currentNode.markup.has(key)) {
             currentNode.markup.delete(key);
@@ -2013,7 +2029,19 @@ canvas.addEventListener('mousedown', (event) => {
 });
 
 document.addEventListener('mouseup', () => {
+    if (isErasing && eraseInitialMarkup) {
+        // If the map size changed, it means they actually erased something during the drag
+        if (eraseInitialMarkup.size !== currentNode.markup.size) {
+            pushUndo({
+                type: 'edit_markup',
+                node: currentNode,
+                oldMarkup: eraseInitialMarkup,
+                newMarkup: new Map(currentNode.markup)
+            });
+        }
+    }
     isErasing = false;
+    eraseInitialMarkup = null;
 });
 
 // Global tracker for exact mouse pixels
@@ -2338,8 +2366,17 @@ document.querySelectorAll('.tool-btn').forEach(btn => {
                 "Clear Markup",
                 btn,
                 () => {
-                    currentNode.markup.clear();
-                    render();
+                    if (currentNode.markup.size > 0) {
+                        let oldMarkup = new Map(currentNode.markup);
+                        currentNode.markup.clear();
+                        pushUndo({
+                            type: 'edit_markup',
+                            node: currentNode,
+                            oldMarkup: oldMarkup,
+                            newMarkup: new Map() // Empty map
+                        });
+                        render();
+                    }
                 }
             );
             return;
@@ -2506,19 +2543,47 @@ function drawAnalysisChart() {
         chartCtx.strokeStyle = THEME.chartCurrentMoveLine;
         chartCtx.lineWidth = 1.5;
         chartCtx.setLineDash([3, 3]);
+
+        // Add a sharp drop shadow to separate the white line from white score areas
+        chartCtx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+        chartCtx.shadowBlur = 3;
+        chartCtx.shadowOffsetX = 1;
+        chartCtx.shadowOffsetY = 0;
+
         chartCtx.stroke();
+
+        // Reset context properties so they don't bleed into the next drawing pass
         chartCtx.setLineDash([]);
+        chartCtx.shadowColor = 'transparent';
+        chartCtx.shadowBlur = 0;
+        chartCtx.shadowOffsetX = 0;
+        chartCtx.shadowOffsetY = 0;
+    }
+
+    // Single Phantom Sweep Indicator (KataGo's exact focus)
+    if (!isAnalysisPaused && currentEngineSweepTurn !== null && currentEngineSweepTurn < path.length) {
+        let px = padL + (currentEngineSweepTurn * stepX);
+        if (currentEngineSweepTurn === path.length - 1) px -= 1;
+
+        chartCtx.beginPath();
+        chartCtx.moveTo(px, padT);
+        chartCtx.lineTo(px, padT + chartH);
+
+        // Thin, blue, uninterrupted line tracking the AI's exact position
+        chartCtx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+        chartCtx.lineWidth = 1.5;
+        chartCtx.stroke();
     }
 
     // Y-Axis Annotations
-    chartCtx.fillStyle = '#bdaea6';
+    chartCtx.fillStyle = '#f4ebd8'; // Ivory white
     chartCtx.font = 'bold 9px sans-serif';
     chartCtx.textAlign = 'left';
 
-    chartCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    chartCtx.shadowColor = 'rgba(0, 0, 0, 0.85)';
     chartCtx.shadowBlur = 3;
     chartCtx.shadowOffsetX = 1;
-    chartCtx.shadowOffsetY = 1;
+    chartCtx.shadowOffsetY = 0;
 
     chartCtx.textBaseline = 'top';
     chartCtx.fillText(`+${maxAbsScore}`, padL + 4, padT + 2);
@@ -2600,22 +2665,25 @@ function updateAnalysisUI() {
             statusText = engineStatusMessage;
             statusTextEl.style.color = 'var(--text-main)'; // Ivory
             if (spinner) spinner.style.display = 'block';
-        } else {
-            if (spinner) spinner.style.display = 'none';
-            if (!isNodeOnMainLine(currentNode)) {
-                statusText = 'Deep pondering move (1000 visits)...';
-            } else if (currentAnalysisPhase === 1) {
-                statusText = 'Initializing...';
-            } else if (currentAnalysisPhase === 1.5) {
-                statusText = 'Evaluating branch (25 visits)...';
-            } else if (currentAnalysisPhase === 2) {
-                statusText = 'Main line: Fast sweep (25 visits)...';
-            } else if (currentAnalysisPhase === 3) {
-                statusText = 'Main line: Refining graph (50 visits)...';
-            } else {
-                statusText = 'Deep pondering move (1000 visits)...';
-            }
-        }
+          } else {
+              if (spinner) spinner.style.display = 'none';
+              let finalVisits = appSettings.kataVisits[appSettings.kataPassCount - 1];
+
+              if (spinner) spinner.style.display = 'none';
+
+              if (!isNodeOnMainLine(currentNode)) {
+                  statusText = `Deep pondering move (10000 visits)...`;
+              } else if (currentAnalysisPhase === 1) {
+                  statusText = 'Initializing...';
+              } else if (currentAnalysisPhase === 1.5) {
+                  let varVisits = appSettings.kataPassCount > 1 ? appSettings.kataVisits[1] : appSettings.kataVisits[0];
+                  statusText = `Evaluating branch (${varVisits} visits)...`;
+              } else if (currentAnalysisPhase <= appSettings.kataPassCount) {
+                  statusText = `Main line: Resolving variations (${appSettings.kataVisits[currentAnalysisPhase - 1]} visits)...`;
+              } else {
+                  statusText = `Deep pondering move (10000 visits)...`;
+              }
+          }
 
         if (currentNode.winrate !== null) {
             let wr = currentNode.winrate;
@@ -3292,6 +3360,10 @@ function performUndo() {
         action.node.gtpCoord = action.node.parent ? LETTERS[action.oldX] + (BOARD_SIZE - action.oldY).toString() : 'Start';
         rebuildDescendantStates(action.node);
     }
+    else if (action.type === 'edit_markup') {
+        action.node.markup = new Map(action.oldMarkup);
+        currentNode = action.node; // Navigate to the node where the undo happened
+    }
 
     isFileLinked = false;
     updateResultFromMainLine();
@@ -3325,6 +3397,10 @@ function performRedo() {
         action.node.y = action.newY;
         action.node.gtpCoord = action.node.parent ? LETTERS[action.newX] + (BOARD_SIZE - action.newY).toString() : 'Start';
         rebuildDescendantStates(action.node);
+    }
+    else if (action.type === 'edit_markup') {
+        action.node.markup = new Map(action.newMarkup);
+        currentNode = action.node; // Navigate to the node where the redo happened
     }
 
     isFileLinked = false;
@@ -3650,20 +3726,21 @@ function sendAnalysisQuery() {
         currentIndex = fullPath.indexOf(currentNode.parent);
     }
 
-    let needs1 = [];
-    let needs25 = [];
-    let needs50 = [];
+    let needs = Array.from({length: appSettings.kataPassCount}, () => []);
 
     for (let i = 1; i < fullPath.length; i++) {
         if (fullPath[i].gtpCoord.toLowerCase() === 'pass') continue;
-        if (fullPath[i].visits < 1) needs1.push(i);
-        else if (fullPath[i].visits < 25) needs25.push(i);
-        else if (fullPath[i].visits < 50) needs50.push(i);
+        for (let p = 0; p < appSettings.kataPassCount; p++) {
+            if (fullPath[i].visits < appSettings.kataVisits[p]) {
+                needs[p].push(i);
+                break; // Target the lowest unfinished pass first
+            }
+        }
     }
 
-    // Phase 1.5 Interceptor: Sweeps siblings/variations with a 1-visit pass
+    // Phase 1.5 Interceptor: Sweeps siblings/variations early
     let variationToEvaluate = null;
-    if (needs1.length === 0) {
+    if (appSettings.kataPassCount > 1 && needs[0].length === 0) {
         if (currentNode.parent) {
             for (let child of currentNode.parent.children) {
                 if (child.gtpCoord.toLowerCase() === 'pass' || child.gtpCoord === 'resign' || child === currentNode) continue;
@@ -3685,53 +3762,64 @@ function sendAnalysisQuery() {
 
     if (showingScoreEstimate) {
         turnsToAnalyze = [currentIndex];
-        currentPhaseMaxVisits = 1000;
+        currentPhaseMaxVisits = appSettings.kataVisits[appSettings.kataPassCount - 1];
         includeOwnership = true;
         targetPath = fullPath;
     } else {
-        // Step-ladder analysis: Sweeps the whole line, then slowly deepens it
-        if (needs1.length > 0) {
+      let activePass = -1;
+      for (let p = 0; p < appSettings.kataPassCount; p++) {
+          if (needs[p].length > 0) {
+              activePass = p;
+              break;
+          }
+      }
+
+      if (activePass === 0) {
             currentAnalysisPhase = 1;
-            currentPhaseMaxVisits = 1;
-            turnsToAnalyze = [...new Set([currentIndex, ...needs1])];
+            currentPhaseMaxVisits = appSettings.kataVisits[0];
+
+            // Only prioritize the current move if it actually needs visits for this pass
+            turnsToAnalyze = needs[0].includes(currentIndex)
+                ? [currentIndex, ...needs[0].filter(i => i !== currentIndex)]
+                : [...needs[0]];
+
             targetPath = fullPath;
         } else if (variationToEvaluate) {
             currentAnalysisPhase = 1.5;
-            currentPhaseMaxVisits = 25;
+            currentPhaseMaxVisits = appSettings.kataVisits[1] || appSettings.kataVisits[0];
 
             let varPath = [];
             let temp = variationToEvaluate;
             while(temp !== null) {
-                if (temp.gtpCoord !== 'resign') {
-                    varPath.unshift(temp);
-                }
+                if (temp.gtpCoord !== 'resign') varPath.unshift(temp);
                 temp = temp.parent;
             }
             targetPath = varPath;
             turnsToAnalyze = [varPath.length - 1];
-        } else if (needs25.length > 0) {
-            currentAnalysisPhase = 2;
-            currentPhaseMaxVisits = 25;
-            turnsToAnalyze = [...new Set([currentIndex, ...needs25])];
-            targetPath = fullPath;
-        } else if (needs50.length > 0) {
-            currentAnalysisPhase = 3;
-            currentPhaseMaxVisits = 50;
-            turnsToAnalyze = [...new Set([currentIndex, ...needs50])];
+        } else if (activePass > 0) {
+            currentAnalysisPhase = activePass + 1; // Phase 2, 3, 4...
+            currentPhaseMaxVisits = appSettings.kataVisits[activePass];
+
+            // Only prioritize the current move if it actually needs visits for this pass
+            turnsToAnalyze = needs[activePass].includes(currentIndex)
+                ? [currentIndex, ...needs[activePass].filter(i => i !== currentIndex)]
+                : [...needs[activePass]];
+
             targetPath = fullPath;
         } else {
-            currentAnalysisPhase = 4;
-            currentPhaseMaxVisits = 1000;
+            // All passes completed. Enter deep ponder mode on the active move.
+            currentAnalysisPhase = "ponder";
+            currentPhaseMaxVisits = 10000;
             turnsToAnalyze = [currentIndex];
             targetPath = fullPath;
         }
 
-        let parentIndex = turnsToAnalyze[0] - 1;
-        if (targetPath === fullPath && parentIndex >= 0 && fullPath[parentIndex].scoreLead === null && !turnsToAnalyze.includes(parentIndex)) {
-            turnsToAnalyze.push(parentIndex);
-        }
+      let parentIndex = turnsToAnalyze[0] - 1;
+      if (targetPath === fullPath && parentIndex >= 0 && fullPath[parentIndex].scoreLead === null && !turnsToAnalyze.includes(parentIndex)) {
+          turnsToAnalyze.push(parentIndex);
+      }
 
-        includeOwnership = (currentAnalysisPhase === 4);
+      includeOwnership = (currentAnalysisPhase === appSettings.kataPassCount || currentAnalysisPhase === "ponder");
     }
 
     currentAnalysisPath = targetPath;
@@ -3753,6 +3841,9 @@ function sendAnalysisQuery() {
         analyzeTurns: turnsToAnalyze,
         maxVisits: currentPhaseMaxVisits
     };
+
+    // Reset the sweep tracker for the new pass
+    currentEngineSweepTurn = null;
 
     window.electronAPI.sendAnalysisQuery(query);
 }
@@ -3794,6 +3885,9 @@ if (window.electronAPI) {
                     targetNode.scoreLead = data.rootInfo.scoreLead;
                     targetNode.visits = data.rootInfo.visits;
 
+                    // Track the exact turn KataGo is currently streaming data for
+                    currentEngineSweepTurn = data.turnNumber;
+
                     if (data.moveInfos) targetNode.kataMoveInfos = data.moveInfos;
                     if (data.ownership) targetNode.kataOwnership = data.ownership;
 
@@ -3827,14 +3921,11 @@ if (window.electronAPI) {
         let promotePhase = false;
 
         if (!showingScoreEstimate) {
-            if (currentAnalysisPhase === 1) {
-                promotePhase = fullPath.slice(1).every(n => n.visits >= 1 || n.gtpCoord.toLowerCase() === 'pass');
-            } else if (currentAnalysisPhase === 1.5) {
+            if (currentAnalysisPhase === 1.5) {
                 promotePhase = true;
-            } else if (currentAnalysisPhase === 2) {
-                promotePhase = fullPath.slice(1).every(n => n.visits >= 25 || n.gtpCoord.toLowerCase() === 'pass');
-            } else if (currentAnalysisPhase === 3) {
-                promotePhase = fullPath.slice(1).every(n => n.visits >= 50 || n.gtpCoord.toLowerCase() === 'pass');
+            } else if (currentAnalysisPhase >= 1 && currentAnalysisPhase <= appSettings.kataPassCount) {
+                let targetVisits = appSettings.kataVisits[currentAnalysisPhase - 1];
+                promotePhase = fullPath.slice(1).every(n => n.visits >= targetVisits || n.gtpCoord.toLowerCase() === 'pass');
             }
         }
 
@@ -4398,12 +4489,64 @@ document.getElementById('btn-options-bottom').addEventListener('click', (e) => {
 
     document.getElementById('opt-current-move').checked = appSettings.optCurrentMove;
     document.getElementById('opt-coord-highlight').checked = appSettings.optCoordHighlight;
+    document.getElementById('opt-show-coords').checked = appSettings.optShowCoords;
     document.getElementById('opt-next-move').checked = appSettings.optNextMove;
     document.getElementById('opt-alt-move').checked = appSettings.optAltMove;
     document.getElementById('opt-alt-next-move').checked = appSettings.optAltNextMove;
     document.getElementById('opt-save-confirm').checked = appSettings.optSaveConfirm;
     document.getElementById('opt-new-confirm').checked = appSettings.optNewConfirm;
     document.getElementById('opt-delete-confirm').checked = appSettings.optDeleteConfirm;
+
+    const passInput = document.getElementById('opt-kata-passes');
+    const passSlider = document.getElementById('opt-kata-passes-slider');
+    const container = document.getElementById('kata-passes-container');
+
+    passInput.value = appSettings.kataPassCount;
+    if (passSlider) passSlider.value = appSettings.kataPassCount;
+
+    const updateSliderFill = () => {
+        if (!passSlider) return;
+        const percent = ((passSlider.value - 1) / 4) * 100;
+
+        // EDIT SLIDER FILL AND BACKGROUND COLORS HERE:
+        // First variable is the Fill color, second variable is the Empty Background color
+        passSlider.style.background = `linear-gradient(to right, var(--text-main) ${percent}%, var(--input-bg) ${percent}%)`;
+    };
+
+    const renderPassInputs = () => {
+        let count = Math.max(1, Math.min(5, parseInt(passInput.value, 10) || 1));
+
+        if (passSlider && passSlider.value !== count.toString()) {
+            passSlider.value = count;
+        }
+
+        let html = '';
+        for (let i = 0; i < count; i++) {
+            let val = appSettings.kataVisits[i] || (i === 0 ? 1 : i === 1 ? 100 : 1000);
+            html += `
+                <div class="engine-input-group" style="margin-bottom: 0; flex-direction: column; align-items: stretch; gap: 4px;">
+                    <span class="info-label" style="width: auto; text-align: left;">Pass ${i + 1}</span>
+                    <input type="number" id="opt-visits-${i}" value="${val}" min="1" max="10000" class="info-input" style="background: var(--input-bg); text-align: center;">
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+        updateSliderFill();
+    };
+
+    renderPassInputs();
+
+    passInput.addEventListener('input', () => {
+        if (passSlider) passSlider.value = passInput.value;
+        renderPassInputs();
+    });
+
+    if (passSlider) {
+        passSlider.addEventListener('input', () => {
+            passInput.value = passSlider.value;
+            renderPassInputs();
+        });
+    }
 
     document.getElementById('opt-engine-exe').value = appSettings.engineExe;
     document.getElementById('opt-engine-network').value = appSettings.engineNet;
@@ -4716,12 +4859,23 @@ document.getElementById('options-modal-save').addEventListener('click', async ()
     // 1. Instantly gather and save settings (No Blocking)
     appSettings.optCurrentMove = document.getElementById('opt-current-move').checked;
     appSettings.optCoordHighlight = document.getElementById('opt-coord-highlight').checked;
+    appSettings.optShowCoords = document.getElementById('opt-show-coords').checked;
     appSettings.optNextMove = document.getElementById('opt-next-move').checked;
     appSettings.optAltMove = document.getElementById('opt-alt-move').checked;
     appSettings.optAltNextMove = document.getElementById('opt-alt-next-move').checked;
     appSettings.optSaveConfirm = document.getElementById('opt-save-confirm').checked;
     appSettings.optNewConfirm = document.getElementById('opt-new-confirm').checked;
     appSettings.optDeleteConfirm = document.getElementById('opt-delete-confirm').checked;
+
+    appSettings.kataPassCount = Math.max(1, Math.min(5, parseInt(document.getElementById('opt-kata-passes').value, 10) || 1));
+    appSettings.kataVisits = [];
+    for (let i = 0; i < appSettings.kataPassCount; i++) {
+        let input = document.getElementById(`opt-visits-${i}`);
+        let val = input ? parseInt(input.value, 10) : 1000;
+        if (isNaN(val)) val = 1000;
+        val = Math.max(1, Math.min(10000, val));
+        appSettings.kataVisits.push(val);
+    }
 
     appSettings.engineExe = document.getElementById('opt-engine-exe').value.trim();
     appSettings.engineNet = document.getElementById('opt-engine-network').value.trim();
