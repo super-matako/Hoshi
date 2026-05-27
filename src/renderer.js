@@ -527,8 +527,9 @@ function resizeBoard() {
 
     if (newOrientation !== treeOrientation) {
         treeOrientation = newOrientation;
-        updateTreeUI(); // Force canvas to recalculate and redraw
     }
+
+    updateTreeUI();
 }
 window.addEventListener('resize', resizeBoard);
 
@@ -2530,7 +2531,9 @@ function drawAnalysisChart() {
 
     // Current Move Indicator Tracker
     let currentIndex = path.indexOf(currentNode);
-    if (currentIndex !== -1) {
+
+    // Only draw the dashed indicator if we are past move 0
+    if (currentIndex > 0) {
         let x = padL + (currentIndex * stepX);
 
         if (currentIndex === path.length - 1) {
@@ -2546,7 +2549,7 @@ function drawAnalysisChart() {
 
         // Add a sharp drop shadow to separate the white line from white score areas
         chartCtx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-        chartCtx.shadowBlur = 3;
+        chartCtx.shadowBlur = 4;
         chartCtx.shadowOffsetX = 1;
         chartCtx.shadowOffsetY = 0;
 
@@ -5054,6 +5057,13 @@ updateTreeUI();
 resizeBoard();
 
 // Initial Engine Configuration Pass
+function kickstartEngine() {
+    bootEngine();
+    setTimeout(() => {
+        if (!isAnalysisPaused) requestAnalysis();
+    }, 1000);
+}
+
 if (window.electronAPI && window.electronAPI.getDefaultEnginePaths) {
     window.electronAPI.getDefaultEnginePaths().then(defaultPaths => {
         // If the user's settings still contain relative dummy paths, upgrade them
@@ -5062,10 +5072,10 @@ if (window.electronAPI && window.electronAPI.getDefaultEnginePaths) {
         if (appSettings.engineNet === './KataGo/default_model.bin.gz') appSettings.engineNet = defaultPaths.net;
         if (appSettings.engineCfg === './KataGo/analysis_example.cfg') appSettings.engineCfg = defaultPaths.cfg;
 
-        bootEngine();
+        kickstartEngine();
     });
 } else {
-    bootEngine();
+    kickstartEngine();
 }
 
 updateNewButtonState();
@@ -5146,6 +5156,16 @@ function initInputUX() {
                 input._closeTimeout = null;
             }
 
+            const isRank = input.classList.contains('player-rank-input');
+
+            // For the rank field, we just want a visual color highlight, no physical expansion
+            if (isRank) {
+                input.style.transition = 'background-color 0.15s ease, border-color 0.15s ease';
+                input.style.backgroundColor = 'var(--input-bg)';
+                input.style.borderColor = '#5c4033';
+                return;
+            }
+
             if (input.dataset.ghostId) {
                 const exactWidth = input.scrollWidth + (input.offsetWidth - input.clientWidth);
                 input.style.width = exactWidth + 'px';
@@ -5185,9 +5205,9 @@ function initInputUX() {
                 void input.offsetHeight;
 
                 // Animate open
-                input.style.transition = 'width 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease, background-color 0.15s ease, border-color 0.15s ease';
+                input.style.transition = 'width 0.25s cubic-bezier(0.2, 0, 0, 1), background-color 0.15s ease, border-color 0.15s ease';
                 input.style.width = exactWidth + 'px';
-                input.style.boxShadow = '0 6px 16px rgba(0,0,0,0.6)';
+                input.style.boxShadow = 'none';
 
                 input.style.backgroundColor = 'var(--input-bg)';
                 input.style.borderColor = '#5c4033';
@@ -5197,6 +5217,15 @@ function initInputUX() {
         function closeInput() {
             // Expansion is now strictly dictated by mouse presence and drag activity
             if (input.dataset.isHovered === 'true' || input.dataset.isDragging === 'true') {
+                return;
+            }
+
+            const isRank = input.classList.contains('player-rank-input');
+
+            if (isRank) {
+                // Return to transparent so it blends back in
+                input.style.backgroundColor = 'transparent';
+                input.style.borderColor = 'transparent';
                 return;
             }
 
@@ -5279,17 +5308,19 @@ function initInputUX() {
 
         // If they use the keyboard (Tab) to focus an overflowing field, pop it open
         input.addEventListener('focus', () => {
-            if (input.scrollWidth > input.clientWidth) {
+            const isRank = input.classList.contains('player-rank-input');
+            if (input.scrollWidth > input.clientWidth || isRank) {
                 expandInput();
             }
         });
 
         // If they type and the text grows large enough to overflow, expand it dynamically
         input.addEventListener('input', () => {
+            const isRank = input.classList.contains('player-rank-input');
             if (input.dataset.ghostId) {
                 const exactWidth = input.scrollWidth + (input.offsetWidth - input.clientWidth);
                 input.style.width = exactWidth + 'px';
-            } else if (input.scrollWidth > input.clientWidth) {
+            } else if (input.scrollWidth > input.clientWidth || isRank) {
                 expandInput();
             }
         });
