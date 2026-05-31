@@ -1,6 +1,194 @@
 // renderer.js
 
 // ============================================================================
+// 0. THEME CONFIGURATION (Loaded from style.css)
+// ============================================================================
+const THEME = {
+    // Structural Geometry
+    gridLineWidthMultiplier: 0.035,
+    coordLetterSizeMultiplier: 0.40,
+    coordNumberSizeMultiplier: 0.47,
+    coordLetterFontWeight: '300',
+    coordNumberFontWeight: '400',
+    stoneBlackStrokeMultiplier: 0.03,
+    stoneWhiteStrokeMultiplier: 0.03,
+    stoneShadowOffsetXMultiplier: 0.04,
+    stoneShadowOffsetYMultiplier: 0.06,
+    stoneShadowBlurMultiplier: 0.2,
+    stoneGapOffsetXMultiplier: 0.03,
+    stoneGapOffsetYMultiplier: 0.06,
+    markerCurrentLineWidth: 2,
+    markerNextMainLineWidth: 2,
+    markerNextAltLineWidth: 2,
+    markupGhostAlpha: 0.5,
+    markupLineWidth: 2,
+};
+
+function loadThemeFromCSS() {
+    const rootStyle = getComputedStyle(document.body);
+    const getVar = (name) => rootStyle.getPropertyValue(name).trim();
+
+    // Canvas: Board & Typogrpahy
+    THEME.boardColorFallback = getVar('--cvs-board-fallback');
+    THEME.gridLineColor = getVar('--cvs-grid-line');
+    THEME.starPointColor = getVar('--cvs-star-point');
+    THEME.starPointRadiusMultiplier = parseFloat(getVar('--cvs-star-radius')) || 0.06;
+    THEME.coordTextColor = getVar('--cvs-coord-text');
+    THEME.coordTextHighlightColor = getVar('--cvs-coord-highlight');
+    THEME.coordLetterFontFamily = getVar('--cvs-font-letter');
+    THEME.coordNumberFontFamily = getVar('--cvs-font-number');
+
+    // Canvas: Stones & Shadows
+    THEME.boardStoneBlack = getVar('--cvs-stone-black') || 'black';
+    THEME.boardStoneWhite = getVar('--cvs-stone-white') || 'white';
+    THEME.minimalBlackStroke = getVar('--cvs-minimal-blk-stroke') || 'transparent';
+    THEME.minimalWhiteStroke = getVar('--cvs-minimal-wht-stroke') || 'transparent';
+    THEME.sandalwoodDotColor = getVar('--cvs-sandalwood-dot') || '#E59866';
+
+    THEME.stoneRadiusMultiplier = parseFloat(getVar('--cvs-stone-radius')) || 0.485;
+    THEME.markerCurrentRadiusMultiplier = parseFloat(getVar('--cvs-marker-curr-radius')) || 0.4955;
+    THEME.markerNextRadiusMultiplier = parseFloat(getVar('--cvs-marker-next-radius')) || 0.480;
+
+    THEME.stoneBlackStrokeTopLeft = getVar('--cvs-stone-blk-stroke-tl');
+    THEME.stoneBlackStrokeBottomRight = getVar('--cvs-stone-blk-stroke-br');
+    THEME.stoneWhiteStrokeTopLeft = getVar('--cvs-stone-wht-stroke-tl');
+    THEME.stoneWhiteStrokeBottomRight = getVar('--cvs-stone-wht-stroke-br');
+
+    THEME.ivoryBlackStrokeTopLeft = getVar('--cvs-ivory-blk-stroke-tl') || THEME.stoneBlackStrokeTopLeft;
+    THEME.ivoryBlackStrokeBottomRight = getVar('--cvs-ivory-blk-stroke-br') || THEME.stoneBlackStrokeBottomRight;
+    THEME.ivoryWhiteStrokeTopLeft = getVar('--cvs-ivory-wht-stroke-tl') || THEME.stoneWhiteStrokeTopLeft;
+    THEME.ivoryWhiteStrokeBottomRight = getVar('--cvs-ivory-wht-stroke-br') || THEME.stoneWhiteStrokeBottomRight;
+
+    THEME.stoneShadowColor = getVar('--cvs-stone-shadow');
+    THEME.stoneBlackGapShadowColor = getVar('--cvs-stone-blk-gap');
+    THEME.stoneWhiteGapShadowColor = getVar('--cvs-stone-wht-gap');
+
+    // Canvas: KataGo Bubbles
+    THEME.bubbleBaseColor = getVar('--cvs-bubble-base');
+    THEME.bubbleUnexplored = getVar('--cvs-bubble-unexplored');
+    THEME.bubbleBest = getVar('--cvs-bubble-best');
+    THEME.bubbleGood = getVar('--cvs-bubble-good');
+    THEME.bubbleOkay = getVar('--cvs-bubble-okay');
+    THEME.bubbleBad = getVar('--cvs-bubble-bad');
+    THEME.bubbleTerrible = getVar('--cvs-bubble-terrible');
+    THEME.bubbleTextColor = getVar('--cvs-bubble-text');
+
+    // Canvas: Next-Move Markers
+    THEME.markerCurrentBlackColor = getVar('--cvs-marker-curr-blk');
+    THEME.markerCurrentWhiteColor = getVar('--cvs-marker-curr-wht');
+    THEME.markerNextMainBlackColor = getVar('--cvs-marker-next-blk');
+    THEME.markerNextMainWhiteColor = getVar('--cvs-marker-next-wht');
+    THEME.markerNextAltBlackColor = getVar('--cvs-marker-alt-blk');
+    THEME.markerNextAltWhiteColor = getVar('--cvs-marker-alt-wht');
+    THEME.markerTextBlack = getVar('--cvs-marker-txt-blk');
+    THEME.markerTextWhite = getVar('--cvs-marker-txt-wht');
+
+    // Canvas: Markup & Tools
+    THEME.markupGhostBox = getVar('--cvs-markup-ghost');
+    THEME.markupGhostActive = getVar('--cvs-markup-active');
+    THEME.markupBlackStone = getVar('--cvs-markup-blk');
+    THEME.markupWhiteStone = getVar('--cvs-markup-wht');
+
+    // Canvas: Sidebar Charts & Trees
+    THEME.chartCenterLine = getVar('--cvs-chart-center');
+    THEME.chartScoreFill = getVar('--cvs-chart-score-fill');
+    THEME.chartScoreLine = getVar('--cvs-chart-score-line');
+    THEME.chartWinrateLine = getVar('--cvs-chart-winrate');
+    THEME.chartCurrentMoveLine = getVar('--cvs-chart-curr-move');
+    THEME.treeBranchColor = getVar('--cvs-tree-branch');
+    THEME.treeStoneBlackBorder = getVar('--cvs-tree-blk-border');
+    THEME.treeStoneWhiteBorder = getVar('--cvs-tree-wht-border');
+    THEME.chartTextShadow = getVar('--cvs-chart-text-shadow') || 'rgba(0, 0, 0, 0.85)';
+
+    // UI Accents & Text
+    THEME.accentBase = getVar('--accent-base');
+    THEME.highlightBase = getVar('--cvs-highlight-base');
+    THEME.uiBlkStone = getVar('--ui-blk-stone');
+    THEME.uiWhtStone = getVar('--ui-wht-stone');
+    THEME.textMain = getVar('--text-main');
+}
+
+function loadTextures() {
+    const boardSrc = getTexturePath('--texture-board');
+    const blackA = getTexturePath('--texture-black-a') || getTexturePath('--texture-black');
+    const blackB = getTexturePath('--texture-black-b');
+    const blackC = getTexturePath('--texture-black-c');
+    const whiteA = getTexturePath('--texture-white-a');
+    const whiteB = getTexturePath('--texture-white-b');
+    const whiteC = getTexturePath('--texture-white-c');
+
+    // Reset existing images safely
+    textures.board = new Image();
+    textures.black = [new Image(), new Image(), new Image()];
+    textures.white = [new Image(), new Image(), new Image()];
+    textures.starSvg = new Image();
+
+    // Reattach listeners
+    textures.board.onload = () => render();
+    textures.black.forEach(img => img.onload = () => { stoneCache.cellWidth = 0; render(); });
+    textures.white.forEach(img => img.onload = () => { stoneCache.cellWidth = 0; render(); });
+    textures.starSvg.onload = () => render();
+
+    if (boardSrc) textures.board.src = boardSrc;
+    if (blackA) textures.black[0].src = blackA;
+    if (blackB) textures.black[1].src = blackB;
+    if (blackC) textures.black[2].src = blackC;
+    if (whiteA) textures.white[0].src = whiteA;
+    if (whiteB) textures.white[1].src = whiteB;
+    if (whiteC) textures.white[2].src = whiteC;
+
+    // Dynamically compile the SVG with the active CSS Theme Colors
+    const isSandalwood = document.body.classList.contains('board-sandalwood');
+    if (isSandalwood) {
+        const petalColor = THEME.gridLineColor || '#FFFFF0';
+        const dotColor = THEME.sandalwoodDotColor;
+        const svgStr = `<?xml version="1.0" encoding="utf-8"?>
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+        <circle fill="${dotColor}" cx="256.16" cy="250.36" r="40"/>
+        <path fill="${petalColor}" d="M334.44,143.73c-8.04-7.53-19.74-9.26-31.59-5.92c-6.27-10.6-15.93-17.43-27.17-17.62 c-19.56-0.29-35.74,19.91-35.89,45.19c-0.23,13.56,8.59,25.78,17.46,34.25c-1.89-5.41-2.23-11.36,0.04-17.02 c5.09-12.71,19.84-18.75,32.95-13.5c13.11,5.25,19.6,19.81,14.51,32.51c-2.24,5.59-6.52,9.6-11.54,12.21 c12.24-0.04,27.01-2.74,36.24-12.54C346.55,182.81,348.79,157.03,334.44,143.73z"/><path fill="${petalColor}" d="M380.18,292.46c4.88-9.88,3.13-21.58-3.51-31.95c8.32-9.07,12.06-20.3,8.98-31.12 c-5.4-18.8-29.43-28.42-53.66-21.23c-13.05,3.71-22.17,15.7-27.7,26.65c4.63-3.38,10.22-5.43,16.3-4.91 c13.64,1.18,23.7,13.54,22.48,27.61c-1.22,14.07-13.26,24.51-26.9,23.33c-6-0.52-11.08-3.46-15.04-7.5 c3.6,11.7,10.46,25.06,22.52,31.04C346.29,315.39,371.62,310.06,380.18,292.46z"/><path fill="${petalColor}" d="M254.11,380.88c10.9,1.6,21.5-3.66,29.32-13.16c11.19,5.13,23.03,5.23,32.37-1.03 c16.23-10.92,17.99-36.75,3.7-57.59c-7.55-11.27-21.76-16.27-33.88-18.16c4.64,3.36,8.31,8.05,9.68,14 c3.07,13.34-5.6,26.72-19.36,29.88c-13.76,3.17-27.4-5.08-30.47-18.42c-1.35-5.87-0.12-11.6,2.51-16.61 c-10.03,7.02-20.62,17.66-22.61,30.97C221.87,355.69,234.74,378.15,254.11,380.88z"/><path fill="${petalColor}" d="M128.83,288.91c1.62,10.89,9.73,19.52,21.09,24.26c-1.67,12.2,1.66,23.56,10.35,30.69 c15.15,12.38,40.38,6.59,56.2-13.13c8.61-10.49,9.28-25.53,7.58-37.69c-1.88,5.42-5.3,10.29-10.6,13.32 c-11.88,6.8-27.2,2.37-34.21-9.88c-7.01-12.26-3.06-27.7,8.82-34.5c5.23-2.99,11.07-3.47,16.63-2.41 c-9.62-7.57-22.88-14.63-36.19-12.68C143.62,250.76,125.84,269.58,128.83,288.91z"/><path fill="${petalColor}" d="M179.47,144.04c-9.72,5.19-15.11,15.72-15.76,28.01c-12.05,2.53-21.63,9.48-25.42,20.07 c-6.56,18.43,7.37,40.25,31.26,48.51c12.77,4.58,27.17,0.15,38.04-5.53c-5.73,0.05-11.47-1.54-16.1-5.5 c-10.4-8.9-11.38-24.81-2.19-35.54c9.18-10.72,25.06-12.2,35.45-3.29c4.57,3.92,6.99,9.26,7.86,14.85 c3.89-11.6,6.09-26.46-0.22-38.35C220.37,145.14,196.68,134.73,179.47,144.04z"/></svg>`;
+        textures.starSvg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+    }
+}
+
+function applyTheme(uiTheme, boardStyle, stoneStyle, forceRepaint = false) {
+    let classes = [];
+    if (uiTheme === 'dark') classes.push('theme-dark');
+    if (uiTheme === 'light') classes.push('theme-light');
+    if (uiTheme === 'walnut') classes.push('theme-walnut');
+    if (uiTheme === 'cream') classes.push('theme-cream');
+
+    if (boardStyle) classes.push(`board-${boardStyle}`);
+    if (stoneStyle) classes.push(`stone-${stoneStyle}`);
+
+    document.body.className = classes.join(' ');
+    loadThemeFromCSS();
+
+    if (forceRepaint) {
+        stoneCache = { black: [null, null, null], white: [null, null, null], cellWidth: 0 };
+        loadTextures();
+        render();
+        updateTreeUI();
+        drawAnalysisChart();
+    }
+}
+
+// Extract colors immediately upon boot
+loadThemeFromCSS();
+
+// Helper to read a texture path from a CSS variable
+function getTexturePath(varName) {
+    const val = getComputedStyle(document.body).getPropertyValue(varName).trim();
+    if (val === 'none' || val === '') return null;
+    // Remove any quotes or url() wrapper
+    if (val.startsWith('"') || val.startsWith("'")) return val.replace(/['"]/g, '');
+    if (val.toLowerCase().startsWith('url(')) {
+        const inner = val.slice(4, -1).replace(/['"]/g, '');
+        return inner;
+    }
+    return val;
+}
+
+// ============================================================================
 // 1. GLOBAL CONFIGURATION & HTML ELEMENTS
 // ============================================================================
 const BOARD_SIZE = 19;
@@ -26,165 +214,287 @@ function pushUndo(action) {
 }
 
 const canvas = document.getElementById('go-board');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 
 // ============================================================================
 // 2. TEXTURES & STONE CACHING SYSTEM
 // ============================================================================
 const textures = {
     board: new Image(),
-    black: new Image(),
-    white: [new Image(), new Image(), new Image()]
+    black: [new Image(), new Image(), new Image()],
+    white: [new Image(), new Image(), new Image()],
+    starSvg: new Image()
 };
-textures.board.src = './Textures/kaya-masame.png';
-textures.black.src = './Textures/slate.png';
-textures.white[0].src = './Textures/shell-a.png';
-textures.white[1].src = './Textures/shell-b.png';
-textures.white[2].src = './Textures/shell-c.png';
 
 textures.board.onload = () => render();
-
-// Rebuild the stone cache if images finish loading after the initial render sweep
-textures.black.onload = () => { stoneCache.cellWidth = 0; render(); };
+textures.black.forEach(img => img.onload = () => { stoneCache.cellWidth = 0; render(); });
 textures.white.forEach(img => img.onload = () => { stoneCache.cellWidth = 0; render(); });
+textures.starSvg.onload = () => render();
 
-let stoneCache = { black: null, white: [null, null, null], cellWidth: 0 };
+let stoneCache = { black: [null, null, null], white: [null, null, null], cellWidth: 0 };
+
+/**
+ * Shrinks an image by halves sequentially, landing precisely on target bounds.
+ */
+function stepDownImage(img, targetWidth, targetHeight) {
+    if (!img.naturalWidth || img.naturalWidth <= targetWidth * 1.5) return img;
+
+    let currentWidth = img.naturalWidth;
+    let currentHeight = img.naturalHeight;
+
+    let currentCanvas = document.createElement('canvas');
+    let currentCtx = currentCanvas.getContext('2d');
+    currentCanvas.width = currentWidth;
+    currentCanvas.height = currentHeight;
+    currentCtx.drawImage(img, 0, 0);
+
+    // Halve until we are just above the target
+    while (currentWidth * 0.5 > targetWidth) {
+        currentWidth = Math.floor(currentWidth * 0.5);
+        currentHeight = Math.floor(currentHeight * 0.5);
+
+        let nextCanvas = document.createElement('canvas');
+        nextCanvas.width = currentWidth;
+        nextCanvas.height = currentHeight;
+        let nextCtx = nextCanvas.getContext('2d');
+
+        nextCtx.drawImage(currentCanvas, 0, 0, currentWidth, currentHeight);
+        currentCanvas = nextCanvas;
+    }
+
+    // Final explicit jump exactly to the target bounds
+    let finalCanvas = document.createElement('canvas');
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
+    let finalCtx = finalCanvas.getContext('2d');
+    finalCtx.imageSmoothingEnabled = true;
+    finalCtx.imageSmoothingQuality = 'high';
+    finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+    return finalCanvas;
+}
+
+/**
+ * Restores edge contrast lost during canvas downscaling (Matches Photoshop's 'Bicubic Sharper').
+ */
+function applyBicubicSharpen(ctx, width, height, strength = 0.55) {
+    const w = Math.floor(width);
+    const h = Math.floor(height);
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+    const copy = new Uint8ClampedArray(data);
+
+    for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+            const i = (y * w + x) * 4;
+
+            // Only spend CPU cycles sharpening visible pixels
+            if (copy[i + 3] === 0) continue;
+
+            for (let c = 0; c < 3; c++) {
+                const center = copy[i + c];
+                const top = copy[i - w * 4 + c];
+                const bottom = copy[i + w * 4 + c];
+                const left = copy[i - 4 + c];
+                const right = copy[i + 4 + c];
+
+                // Standard 3x3 Laplacian matrix for edge enhancement
+                const sharpened = (5 * center) - top - bottom - left - right;
+
+                // Blend based on strength setting
+                data[i + c] = (sharpened * strength) + (center * (1 - strength));
+            }
+        }
+    }
+    ctx.putImageData(imageData, 0, 0);
+}
 
 /**
  * Pre-renders stones onto off-screen canvases so they can be rapidly drawn
  * during the main render loop without recalculating shadows and gradients.
  */
  function buildStoneCache() {
-     if (CELL_WIDTH <= 0) return;
-     stoneCache.cellWidth = CELL_WIDTH;
+    if (CELL_WIDTH <= 0) return;
+    stoneCache.cellWidth = CELL_WIDTH;
 
-     const createCachedStone = (color, skinIndex) => {
-         const padding = CELL_WIDTH * 0.5;
-         const cacheWidth = CELL_WIDTH + (padding * 2);
-         const cacheHeight = CELL_HEIGHT + (padding * 2);
-         const cx = cacheWidth / 2;
-         const cy = cacheHeight / 2;
+    const isStoneIvory = document.body.classList.contains('stone-ivory');
+    const isStoneMidnight = document.body.classList.contains('stone-midnight');
+    const isStoneMinimal = document.body.classList.contains('stone-minimal') || isStoneMidnight;
 
-         const radiusMultiplier = 0.485;
-         const radiusX = CELL_WIDTH * radiusMultiplier;
-         const radiusY = CELL_WIDTH * radiusMultiplier;
+    const createCachedStone = (color, skinIndex) => {
+        let fillHex = color === 'black' ? THEME.boardStoneBlack : THEME.boardStoneWhite;
+        let strokeColor = color === 'black' ? THEME.minimalBlackStroke : THEME.minimalWhiteStroke;
 
-         let relativeThicknessMultiplier = color === 'black' ? THEME.stoneBlackStrokeMultiplier : THEME.stoneWhiteStrokeMultiplier;
-         let actualThickness = CELL_WIDTH * relativeThicknessMultiplier;
+        const needsMinimalBorder = isStoneMinimal && strokeColor !== 'transparent' && strokeColor !== 'none' && strokeColor !== '';
 
-         // --- LAYER 1: SHADOW & STROKE CANVAS ---
-          const strokeCanvas = document.createElement('canvas');
-          strokeCanvas.width = cacheWidth;
-          strokeCanvas.height = cacheHeight;
-          const sctx = strokeCanvas.getContext('2d');
+        const padding = CELL_WIDTH * 0.5;
+        const cacheWidth = CELL_WIDTH + (padding * 2);
+        const cacheHeight = CELL_HEIGHT + (padding * 2);
+        const cx = cacheWidth / 2;
+        const cy = cacheHeight / 2;
 
-          const gapOffsetX = CELL_WIDTH * (THEME.stoneGapOffsetXMultiplier || 0);
-          const gapOffsetY = CELL_HEIGHT * (THEME.stoneGapOffsetYMultiplier || 0);
-          const gapColor = color === 'black' ? THEME.stoneBlackGapShadowColor : THEME.stoneWhiteGapShadowColor;
+        const radiusMultiplier = THEME.stoneRadiusMultiplier;
 
-          // Expanded radius to prevent the stroke from overhanging the shadow
-          const outerRadiusX = radiusX + (actualThickness / 2);
-          const outerRadiusY = radiusY + (actualThickness / 2);
+        const radiusX = CELL_WIDTH * radiusMultiplier;
+        const radiusY = CELL_WIDTH * radiusMultiplier;
 
-          // ---------------------------------------------------------
-          // 1. THE OPAQUE SHADOW (Absolute Bottom Layer)
-          // ---------------------------------------------------------
-          sctx.shadowColor = 'rgba(0,0,0,0)';
-          sctx.shadowBlur = 0;
-          sctx.shadowOffsetX = 0;
-          sctx.shadowOffsetY = 0;
+        let relativeThicknessMultiplier = color === 'black' ? THEME.stoneBlackStrokeMultiplier : THEME.stoneWhiteStrokeMultiplier;
+        let actualThickness = CELL_WIDTH * relativeThicknessMultiplier;
 
-          sctx.beginPath();
-          sctx.ellipse(cx + gapOffsetX, cy + gapOffsetY, outerRadiusX, outerRadiusY, 0, 0, 2 * Math.PI);
-          sctx.fillStyle = gapColor || color;
-          sctx.fill();
+        const dpr = window.devicePixelRatio || 1;
 
-          // ---------------------------------------------------------
-          // 2. THE BLURRY SHADOW (Middle Layer)
-          // ---------------------------------------------------------
-          sctx.shadowColor = THEME.stoneShadowColor;
-          sctx.shadowOffsetX = CELL_WIDTH * THEME.stoneShadowOffsetXMultiplier;
-          sctx.shadowOffsetY = CELL_HEIGHT * THEME.stoneShadowOffsetYMultiplier;
-          sctx.shadowBlur = CELL_WIDTH * THEME.stoneShadowBlurMultiplier;
+        // --- LAYER 1: SHADOW & STROKE CANVAS ---
+        const strokeCanvas = document.createElement('canvas');
+        strokeCanvas.width = cacheWidth * dpr;
+        strokeCanvas.height = cacheHeight * dpr;
+        strokeCanvas.logicalWidth = cacheWidth;
+        strokeCanvas.logicalHeight = cacheHeight;
+        const sctx = strokeCanvas.getContext('2d');
+        sctx.scale(dpr, dpr);
 
-          sctx.beginPath();
-          sctx.ellipse(cx + gapOffsetX, cy + gapOffsetY, outerRadiusX, outerRadiusY, 0, 0, 2 * Math.PI);
-          // We fill it again with the gap color so the shadow is cast over the previous layer
-          sctx.fillStyle = gapColor || color;
-          sctx.fill();
+        const gapOffsetX = CELL_WIDTH * (THEME.stoneGapOffsetXMultiplier || 0);
+        const gapOffsetY = CELL_HEIGHT * (THEME.stoneGapOffsetYMultiplier || 0);
+        const gapColor = color === 'black' ? THEME.stoneBlackGapShadowColor : THEME.stoneWhiteGapShadowColor;
 
-          // CRITICAL: Turn off shadows forever for the rest of this stone
-          sctx.shadowColor = 'rgba(0,0,0,0)';
-          sctx.shadowBlur = 0;
-          sctx.shadowOffsetX = 0;
-          sctx.shadowOffsetY = 0;
+        const outerRadiusX = radiusX + (actualThickness / 2);
+        const outerRadiusY = radiusY + (actualThickness / 2);
 
-          // ---------------------------------------------------------
-          // 3. THE STONE BASE (Top Layer)
-          // ---------------------------------------------------------
-          sctx.beginPath();
-          sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-          sctx.fillStyle = color;
-          sctx.fill();
+        // Only draw drop shadows if we are NOT in minimal mode
+        if (!isStoneMinimal) {
+            sctx.shadowColor = 'rgba(0,0,0,0)';
+            sctx.shadowBlur = 0;
+            sctx.shadowOffsetX = 0;
+            sctx.shadowOffsetY = 0;
 
-          // ---------------------------------------------------------
-          // 4. THE STROKE (Outer Rim)
-          // ---------------------------------------------------------
-          if (actualThickness > 0 && radiusX > 0 && radiusY > 0) {
-              let gradient = sctx.createLinearGradient(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY);
-              if (color === 'black') {
-                  gradient.addColorStop(0, THEME.stoneBlackStrokeTopLeft);
-                  gradient.addColorStop(1, THEME.stoneBlackStrokeBottomRight);
+            sctx.beginPath();
+            sctx.ellipse(cx + gapOffsetX, cy + gapOffsetY, outerRadiusX, outerRadiusY, 0, 0, 2 * Math.PI);
+            sctx.fillStyle = gapColor || fillHex;
+            sctx.fill();
+
+            sctx.shadowColor = THEME.stoneShadowColor;
+            sctx.shadowOffsetX = CELL_WIDTH * THEME.stoneShadowOffsetXMultiplier;
+            sctx.shadowOffsetY = CELL_HEIGHT * THEME.stoneShadowOffsetYMultiplier;
+            sctx.shadowBlur = CELL_WIDTH * THEME.stoneShadowBlurMultiplier;
+
+            sctx.beginPath();
+            sctx.ellipse(cx + gapOffsetX, cy + gapOffsetY, outerRadiusX, outerRadiusY, 0, 0, 2 * Math.PI);
+            sctx.fillStyle = gapColor || fillHex;
+            sctx.fill();
+
+            sctx.shadowColor = 'rgba(0,0,0,0)';
+            sctx.shadowBlur = 0;
+            sctx.shadowOffsetX = 0;
+            sctx.shadowOffsetY = 0;
+        }
+
+        // 3. STONE BASE
+        if (!isStoneMinimal) {
+            sctx.beginPath();
+            sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+            sctx.fillStyle = fillHex;
+            sctx.fill();
+        }
+
+        // 4. THE STROKE
+        if (!isStoneMinimal && actualThickness > 0 && radiusX > 0 && radiusY > 0) {
+            let gradient = sctx.createLinearGradient(cx - radiusX, cy - radiusY, cx + radiusX, cy + radiusY);
+            if (color === 'black') {
+                gradient.addColorStop(0, isStoneIvory ? THEME.ivoryBlackStrokeTopLeft : THEME.stoneBlackStrokeTopLeft);
+                gradient.addColorStop(1, isStoneIvory ? THEME.ivoryBlackStrokeBottomRight : THEME.stoneBlackStrokeBottomRight);
+            } else {
+                gradient.addColorStop(0, isStoneIvory ? THEME.ivoryWhiteStrokeTopLeft : THEME.stoneWhiteStrokeTopLeft);
+                gradient.addColorStop(1, isStoneIvory ? THEME.ivoryWhiteStrokeBottomRight : THEME.stoneWhiteStrokeBottomRight);
+            }
+
+            sctx.beginPath();
+            sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+            sctx.lineWidth = actualThickness;
+            sctx.strokeStyle = gradient;
+            sctx.stroke();
+        }
+
+        // --- LAYER 2: CORE TEXTURE CANVAS ---
+        const coreCanvas = document.createElement('canvas');
+        coreCanvas.width = cacheWidth * dpr;
+        coreCanvas.height = cacheHeight * dpr;
+        coreCanvas.logicalWidth = cacheWidth;
+        coreCanvas.logicalHeight = cacheHeight;
+        const cctx = coreCanvas.getContext('2d');
+        cctx.scale(dpr, dpr);
+
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = 'high';
+
+        let imgToDraw = null;
+        if (!isStoneMinimal) {
+            if (color === 'black') {
+                if (textures.black[skinIndex] && textures.black[skinIndex].complete && textures.black[skinIndex].naturalWidth > 0) {
+                    imgToDraw = textures.black[skinIndex];
+                } else if (textures.black[0] && textures.black[0].complete && textures.black[0].naturalWidth > 0) {
+                    imgToDraw = textures.black[0];
+                }
+            } else if (color === 'white') {
+                if (textures.white[skinIndex] && textures.white[skinIndex].complete && textures.white[skinIndex].naturalWidth > 0) {
+                    imgToDraw = textures.white[skinIndex];
+                } else if (textures.white[0] && textures.white[0].complete && textures.white[0].naturalWidth > 0) {
+                    imgToDraw = textures.white[0];
+                }
+            }
+        }
+
+        if (imgToDraw) {
+            cctx.save();
+            cctx.beginPath();
+            cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+            cctx.clip();
+
+            const targetW = (radiusX * 2) * dpr;
+            const targetH = (radiusY * 2) * dpr;
+            const optimalSource = stepDownImage(imgToDraw, targetW, targetH);
+
+            cctx.drawImage(optimalSource, cx - radiusX, cy - radiusY, radiusX * 2, radiusY * 2);
+            cctx.restore();
+
+            if (isStoneIvory) {
+                applyBicubicSharpen(cctx, cacheWidth * dpr, cacheHeight * dpr, 0.65);
+            }
+          } else if (isStoneMinimal) {
+              if (needsMinimalBorder) {
+                  let strokeWidth = Math.max(1.0, CELL_WIDTH * THEME.gridLineWidthMultiplier);
+
+                  // 1. Shrink the base fill so it stops exactly at the center of the stroke path.
+                  // This ensures the outer half of the border draws over empty space,
+                  // preventing the white fill from anti-aliasing past the dark line.
+                  cctx.beginPath();
+                  cctx.ellipse(cx, cy, Math.max(0, radiusX - (strokeWidth / 2)), Math.max(0, radiusY - (strokeWidth / 2)), 0, 0, 2 * Math.PI);
+                  cctx.fillStyle = fillHex;
+                  cctx.fill();
+
+                  // 2. Draw the stroke over the edge
+                  cctx.beginPath();
+                  cctx.ellipse(cx, cy, Math.max(0, radiusX - (strokeWidth / 2)), Math.max(0, radiusY - (strokeWidth / 2)), 0, 0, 2 * Math.PI);
+                  cctx.lineWidth = strokeWidth;
+                  cctx.strokeStyle = strokeColor;
+                  cctx.stroke();
               } else {
-                  gradient.addColorStop(0, THEME.stoneWhiteStrokeTopLeft);
-                  gradient.addColorStop(1, THEME.stoneWhiteStrokeBottomRight);
+                  // Stones without borders can be drawn normally
+                  cctx.beginPath();
+                  cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
+                  cctx.fillStyle = fillHex;
+                  cctx.fill();
               }
-
-              sctx.beginPath();
-              sctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-              sctx.lineWidth = actualThickness;
-              sctx.strokeStyle = gradient;
-              sctx.stroke();
           }
 
-         // --- LAYER 2: CORE TEXTURE CANVAS ---
-         const coreCanvas = document.createElement('canvas');
-         coreCanvas.width = cacheWidth;
-         coreCanvas.height = cacheHeight;
-         const cctx = coreCanvas.getContext('2d');
+        return { stroke: strokeCanvas, core: coreCanvas };
+    };
 
-         let imgToDraw = null;
-         if (color === 'black' && textures.black.complete && textures.black.naturalWidth > 0) {
-             imgToDraw = textures.black;
-         } else if (color === 'white') {
-             if (textures.white[skinIndex].complete && textures.white[skinIndex].naturalWidth > 0) {
-                 imgToDraw = textures.white[skinIndex];
-             }
-         }
-
-         if (imgToDraw) {
-             cctx.save();
-             cctx.beginPath();
-             cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-             cctx.clip(); // Keeps the texture perfectly round
-             cctx.drawImage(imgToDraw, cx - radiusX, cy - radiusY, radiusX * 2, radiusY * 2);
-             cctx.restore();
-         } else {
-             cctx.beginPath();
-             cctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, 2 * Math.PI);
-             cctx.fillStyle = color;
-             cctx.fill();
-         }
-
-         // Return both layers as a combined object
-         return { stroke: strokeCanvas, core: coreCanvas };
-     };
-
-     stoneCache.black = createCachedStone('black', 0);
-     stoneCache.white[0] = createCachedStone('white', 0);
-     stoneCache.white[1] = createCachedStone('white', 1);
-     stoneCache.white[2] = createCachedStone('white', 2);
- }
+    stoneCache.black[0] = createCachedStone('black', 0);
+    stoneCache.black[1] = createCachedStone('black', 1);
+    stoneCache.black[2] = createCachedStone('black', 2);
+    stoneCache.white[0] = createCachedStone('white', 0);
+    stoneCache.white[1] = createCachedStone('white', 1);
+    stoneCache.white[2] = createCachedStone('white', 2);
+}
 
 // ============================================================================
 // 3. STATE HASHING & RULES ENGINE
@@ -418,6 +728,9 @@ const DEFAULT_HOTKEYS = {
 
 const SETTINGS_KEY = 'hoshi_settings';
 let appSettings = {
+    theme: 'mocha',
+    boardStyle: 'kaya',
+    stoneStyle: 'shell',
     optCurrentMove: true,
     optNextMove: true,
     optAltMove: true,
@@ -432,13 +745,23 @@ let appSettings = {
     engineExe: './KataGo/katago.exe',
     engineNet: './KataGo/default_model.bin.gz',
     engineCfg: './KataGo/analysis_example.cfg',
-    hotkeys: JSON.parse(JSON.stringify(DEFAULT_HOTKEYS))
+    hotkeys: JSON.parse(JSON.stringify(DEFAULT_HOTKEYS)),
+    bubbleColors: {
+        best: 'rgba(59, 130, 246, 0.85)',
+        good: 'rgba(16, 185, 129, 0.85)',
+        okay: 'rgba(245, 158, 11, 0.85)',
+        bad: 'rgba(239, 68, 68, 0.85)',
+        terrible: 'rgba(127, 29, 29, 0.85)'
+    },
+    bubbleThresholds: { good: 2.0, okay: 4.0, bad: 7.0 }
 };
 
 let savedConfig = localStorage.getItem(SETTINGS_KEY);
 if (savedConfig) {
     let parsed = JSON.parse(savedConfig);
     appSettings = { ...appSettings, ...parsed };
+    if (parsed.bubbleColors) appSettings.bubbleColors = { ...appSettings.bubbleColors, ...parsed.bubbleColors };
+    if (parsed.bubbleThresholds) appSettings.bubbleThresholds = { ...appSettings.bubbleThresholds, ...parsed.bubbleThresholds };
 
     // Automatically migrate old save configurations to the new array setup
     if (parsed.kataVisits1 !== undefined && !parsed.kataVisits) {
@@ -450,6 +773,9 @@ if (savedConfig) {
         appSettings.hotkeys = { ...appSettings.hotkeys, ...parsed.hotkeys };
     }
 }
+
+// Apply the loaded theme instantly
+applyTheme(appSettings.theme, appSettings.boardStyle, appSettings.stoneStyle);
 
 let skipSaveConfirm = !appSettings.optSaveConfirm;
 let skipNewConfirm = !appSettings.optNewConfirm;
@@ -848,7 +1174,7 @@ function renderTreeCanvas() {
         treeCtx.globalAlpha = 1.0;
 
         if (node === currentNode) {
-            treeCtx.fillStyle = '#A33C3C';
+            treeCtx.fillStyle = `rgb(${THEME.highlightBase})`;
             treeCtx.beginPath();
             let highlightRadius = (node === rootNode) ? (TREE_RADIUS * 0.55 + 3) : (TREE_RADIUS + 4);
             treeCtx.arc(x, y, highlightRadius, 0, 2 * Math.PI);
@@ -860,7 +1186,7 @@ function renderTreeCanvas() {
             let editRadius = (node === rootNode) ? (TREE_RADIUS * 0.55 + 3) : (TREE_RADIUS + 4);
             treeCtx.arc(x, y, editRadius, 0, 2 * Math.PI);
             treeCtx.lineWidth = 2.5;
-            treeCtx.strokeStyle = '#d46666';
+            treeCtx.strokeStyle = `rgba(${THEME.highlightBase}, 0.85)`;
             treeCtx.setLineDash([4, 3]);
             treeCtx.shadowColor = 'rgba(0, 0, 0, 0.9)';
             treeCtx.shadowBlur = 3;
@@ -878,7 +1204,7 @@ function renderTreeCanvas() {
             continue;
         }
 
-        treeCtx.fillStyle = node.color;
+        treeCtx.fillStyle = node.color === 'black' ? THEME.uiBlkStone : THEME.uiWhtStone;
         treeCtx.strokeStyle = node.color === 'black' ? THEME.treeStoneBlackBorder : THEME.treeStoneWhiteBorder;
         treeCtx.lineWidth = 1.5;
 
@@ -1001,7 +1327,7 @@ function render() {
     if (!ctx) return;
 
     // Check the cache ONCE per frame, instead of 361 times inside the stone loop
-    if (!stoneCache.black || stoneCache.cellWidth !== CELL_WIDTH) {
+    if (!stoneCache.black[0] || stoneCache.cellWidth !== CELL_WIDTH) {
         buildStoneCache();
     }
 
@@ -1032,6 +1358,16 @@ function render() {
         ctx.fillStyle = t.fillStyle;
         ctx.font = t.font;
 
+        if (t.strokeStyle) {
+            // Temporarily suspend shadow so it doesn't double-multiply against the stroke
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 3.5;
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = t.strokeStyle;
+            ctx.strokeText(t.text, t.x, t.y);
+        }
+
         ctx.shadowColor = t.shadowColor;
         ctx.shadowBlur = t.shadowBlur;
 
@@ -1042,10 +1378,16 @@ function render() {
     drawMarkup();
 
     if (!showingScoreEstimate) drawGhostStoneOrMarkup();
+
+    // Pipe the final output into the Options modal preview box
+    updateThemePreviewCanvas();
 }
 
 function drawWoodBackground() {
-    if (textures.board.complete && textures.board.naturalWidth > 0) {
+    const isBoardMinimal = document.body.classList.contains('board-minimal') ||
+                           document.body.classList.contains('board-midnight');
+
+    if (!isBoardMinimal && textures.board.complete && textures.board.naturalWidth > 0) {
         ctx.save();
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
@@ -1058,10 +1400,35 @@ function drawWoodBackground() {
 }
 
 function drawGrid() {
+    ctx.save();
+    const isSandalwood = document.body.classList.contains('board-sandalwood');
+
+    // 1. Only punch holes in the grid if we are using the Sandalwood flower SVGs
+    if (isSandalwood) {
+        ctx.beginPath();
+        ctx.rect(0, 0, boardWidth, boardHeight);
+
+        const starPoints = [3, 9, 15];
+        const baseRadius = Math.max(1.5, CELL_WIDTH * THEME.starPointRadiusMultiplier);
+        const maskRadius = baseRadius * 2.75;
+
+        for (const x of starPoints) {
+            for (const y of starPoints) {
+                const px = MARGIN_X + (x * CELL_WIDTH);
+                const py = MARGIN_Y + (y * CELL_HEIGHT);
+
+                ctx.moveTo(px + maskRadius, py);
+                ctx.arc(px, py, maskRadius, 0, 2 * Math.PI, true);
+            }
+        }
+        ctx.clip();
+    }
+
+    // 2. Draw the primary grid lines
     ctx.strokeStyle = THEME.gridLineColor;
     ctx.lineWidth = Math.max(1.0, CELL_WIDTH * THEME.gridLineWidthMultiplier);
 
-    ctx.beginPath(); // Start ONE single path for the entire grid
+    ctx.beginPath();
 
     for (let i = 0; i < BOARD_SIZE; i++) {
         const posX = MARGIN_X + (i * CELL_WIDTH);
@@ -1073,29 +1440,107 @@ function drawGrid() {
         ctx.moveTo(MARGIN_X, posY);
         ctx.lineTo(boardWidth - MARGIN_X, posY);
     }
+    ctx.stroke();
 
-    ctx.stroke(); // Command the GPU to draw all 38 lines at once
-}
+    // 3. Draw the Sandalwood Inlay Border with Unicode Symbol
+    if (isSandalwood) {
+        const trackW = CELL_WIDTH * 0.40;
 
-function drawStarPoints() {
-    const starPoints = [3, 9, 15];
-    ctx.fillStyle = THEME.starPointColor;
-    const radius = Math.max(1.5, CELL_WIDTH * 0.06);
+        // Inner boundary (Flush against the grid)
+        const inL = MARGIN_X;
+        const inR = boardWidth - MARGIN_X;
+        const inT = MARGIN_Y;
+        const inB = boardHeight - MARGIN_Y;
 
-    ctx.beginPath(); // Start ONE single path
+        // Outer boundary
+        const outL = inL - trackW;
+        const outR = inR + trackW;
+        const outT = inT - trackW;
+        const outB = inB + trackW;
 
-    for (const x of starPoints) {
-        for (const y of starPoints) {
-            const px = MARGIN_X + (x * CELL_WIDTH);
-            const py = MARGIN_Y + (y * CELL_HEIGHT);
+        // A. Draw the boundary lines
+        ctx.beginPath();
+        ctx.rect(inL, inT, inR - inL, inB - inT);
+        ctx.rect(outL, outT, outR - outL, outB - outT);
+        ctx.lineWidth = Math.max(0.5, CELL_WIDTH * THEME.gridLineWidthMultiplier * 0.8);
+        ctx.strokeStyle = THEME.gridLineColor;
+        ctx.stroke();
 
-            // Move the "pen" to the edge of the next circle to avoid connecting lines
-            ctx.moveTo(px + radius, py);
-            ctx.arc(px, py, radius, 0, 2 * Math.PI);
+        // B. Set up the text renderer for the ❖ symbol
+        ctx.fillStyle = THEME.gridLineColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Scale the font so it fits elegantly inside the thicker track
+        let fontSize = Math.floor(trackW * 0.70);
+        ctx.font = `${fontSize}px sans-serif`;
+
+        const midL = outL + (trackW / 2);
+        const midR = outR - (trackW / 2);
+        const midT = outT + (trackW / 2);
+        const midB = outB - (trackW / 2);
+
+        // Roughly 15% gap between each symbol
+        const targetSpacing = fontSize * 1.15;
+        const hLength = midR - midL;
+        const vLength = midB - midT;
+
+        const hCount = Math.round(hLength / targetSpacing);
+        const vCount = Math.round(vLength / targetSpacing);
+
+        const hStep = hLength / hCount;
+        const vStep = vLength / vCount;
+
+        // Draw Top and Bottom edges (including corners)
+        for (let i = 0; i <= hCount; i++) {
+            let x = midL + (i * hStep);
+            ctx.fillText('❖', x, midT + (fontSize * 0.05));
+            ctx.fillText('❖', x, midB + (fontSize * 0.05));
+        }
+
+        // Draw Left and Right edges (skipping corners so we don't double-draw)
+        for (let i = 1; i < vCount; i++) {
+            let y = midT + (i * vStep);
+            ctx.fillText('❖', midL, y + (fontSize * 0.05));
+            ctx.fillText('❖', midR, y + (fontSize * 0.05));
         }
     }
 
-    ctx.fill(); // Fill all 9 dots at once
+    ctx.restore();
+}
+
+function drawStarPoints() {
+    const isSandalwood = document.body.classList.contains('board-sandalwood');
+    const starPoints = [3, 9, 15];
+    ctx.fillStyle = THEME.starPointColor;
+    const radius = Math.max(1.5, CELL_WIDTH * THEME.starPointRadiusMultiplier);
+
+    if (isSandalwood && textures.starSvg && textures.starSvg.complete && textures.starSvg.naturalWidth > 0) {
+        const svgSize = (radius * 2) * 5.38;
+
+        for (const x of starPoints) {
+            for (const y of starPoints) {
+                const px = MARGIN_X + (x * CELL_WIDTH);
+                const py = MARGIN_Y + (y * CELL_HEIGHT);
+
+                const drawX = px - (svgSize * 0.51232);
+                const drawY = py - (svgSize * 0.50072);
+
+                ctx.drawImage(textures.starSvg, drawX, drawY, svgSize, svgSize);
+            }
+        }
+    } else {
+        ctx.beginPath();
+        for (const x of starPoints) {
+            for (const y of starPoints) {
+                const px = MARGIN_X + (x * CELL_WIDTH);
+                const py = MARGIN_Y + (y * CELL_HEIGHT);
+                ctx.moveTo(px + radius, py);
+                ctx.arc(px, py, radius, 0, 2 * Math.PI);
+            }
+        }
+        ctx.fill();
+    }
 }
 
 function drawCoordinates() {
@@ -1251,7 +1696,7 @@ function drawKataSuggestions() {
         }
         if (loss < 0) loss = 0;
 
-        if (loss <= 2.0) {
+        if (loss <= appSettings.bubbleThresholds.good) {
             let coords = gtpToCoords(moveInfo.move);
             if (!coords) continue;
 
@@ -1301,11 +1746,11 @@ function drawKataSuggestions() {
 
         let isBest = (absoluteBestMove && moveInfo.move === absoluteBestMove.move);
 
-        if (isBest) ctx.fillStyle = THEME.bubbleBest;
-        else if (loss <= 2.0) ctx.fillStyle = THEME.bubbleGood;
-        else if (loss <= 4.0) ctx.fillStyle = THEME.bubbleOkay;
-        else if (loss <= 7.0) ctx.fillStyle = THEME.bubbleBad;
-        else ctx.fillStyle = THEME.bubbleTerrible;
+        if (isBest) ctx.fillStyle = appSettings.bubbleColors.best;
+        else if (loss <= appSettings.bubbleThresholds.good) ctx.fillStyle = appSettings.bubbleColors.good;
+        else if (loss <= appSettings.bubbleThresholds.okay) ctx.fillStyle = appSettings.bubbleColors.okay;
+        else if (loss <= appSettings.bubbleThresholds.bad) ctx.fillStyle = appSettings.bubbleColors.bad;
+        else ctx.fillStyle = appSettings.bubbleColors.terrible;
 
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
@@ -1410,7 +1855,7 @@ function drawTreeMarkers() {
 
                 let actualLineWidth = 0;
                 let desiredStrokeColor = '';
-                let radiusMultiplier = 0.480;
+                let radiusMultiplier = THEME.markerNextRadiusMultiplier;
 
                 if (i === 0) {
                     actualLineWidth = THEME.markerNextMainLineWidth;
@@ -1509,7 +1954,7 @@ function drawTreeMarkers() {
 
                 let actualLineWidth = THEME.markerNextAltLineWidth;
                 let desiredStrokeColor = sibling.color === 'black' ? THEME.markerNextAltBlackColor : THEME.markerNextAltWhiteColor;
-                let radiusMultiplier = 0.480;
+                let radiusMultiplier = THEME.markerNextRadiusMultiplier;
 
                 const radiusX = CELL_WIDTH * radiusMultiplier;
                 const radiusY = CELL_WIDTH * radiusMultiplier;
@@ -1553,25 +1998,51 @@ function drawTreeMarkers() {
         const px = MARGIN_X + (currentNode.x * CELL_WIDTH);
         const py = MARGIN_Y + (currentNode.y * CELL_HEIGHT);
 
+        const isStoneMidnight = document.body.classList.contains('stone-midnight');
+        const isStoneMinimal = document.body.classList.contains('stone-minimal') || isStoneMidnight;
         let actualLineWidth = THEME.markerCurrentLineWidth;
-        const radiusX = CELL_WIDTH * 0.495;
-        const radiusY = CELL_WIDTH * 0.495;
+
+        // Match the specific stone sizes from CSS to ensure the outline is perfectly flush
+        const radiusMultiplier = THEME.markerCurrentRadiusMultiplier;
+
+        const radiusX = CELL_WIDTH * radiusMultiplier;
+        const radiusY = CELL_WIDTH * radiusMultiplier;
 
         if (appSettings.optCurrentMove && actualLineWidth > 0 && radiusX > 0 && radiusY > 0) {
             ctx.beginPath();
-            ctx.ellipse(px, py, radiusX, radiusY, 0, 0, 2 * Math.PI);
-            ctx.lineWidth = actualLineWidth;
-            ctx.strokeStyle = currentNode.color === 'black' ? THEME.markerCurrentBlackColor : THEME.markerCurrentWhiteColor;
 
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-            ctx.shadowBlur = 3;
+            // In Minimal mode, pull the stroke outwards so it perfectly swallows the anti-aliased edge of the stone
+            let offset = isStoneMinimal ? (actualLineWidth / 2) : 0;
+            ctx.ellipse(px, py, radiusX - offset, radiusY - offset, 0, 0, 2 * Math.PI);
+
+            // Explicitly kill shadows to ensure nothing bleeds from previous rendering passes
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
 
+            if (isStoneMinimal) {
+                // Draw a fully opaque solid stroke behind the colored marker to permanently seal the bleed
+                ctx.lineWidth = actualLineWidth + 3.5;
+                ctx.strokeStyle = '#000000';
+                ctx.stroke();
+            } else {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 3;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // Draw the main colored stroke exactly on top
+            ctx.lineWidth = actualLineWidth;
+            ctx.strokeStyle = currentNode.color === 'black' ? THEME.markerCurrentBlackColor : THEME.markerCurrentWhiteColor;
             ctx.stroke();
 
+            // Always reset shadows so they don't corrupt the next rendering pass
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
         }
 
         let scoreStr = null;
@@ -1633,6 +2104,20 @@ function drawTreeMarkers() {
 
             let textAlpha = (hasPermanentSymbol || isHoveringSymbol) ? 0.5 : 1.0;
 
+            const isStoneIvory = document.body.classList.contains('stone-ivory');
+            let currentShadowColor = currentNode.color === 'black' ? 'rgba(0, 0, 0, 1.0)' : 'transparent';
+            let currentShadowBlur = currentNode.color === 'black' ? 4 : 0;
+            let backingStroke = undefined;
+
+            if (isStoneIvory) {
+                // Ivory stones use a thick text stroke to remain legible against the complex texture
+                backingStroke = currentNode.color === 'black' ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.75)';
+
+                // Kill the shadow so it doesn't conflict with the stroke we just added
+                currentShadowColor = 'transparent';
+                currentShadowBlur = 0;
+            }
+
             textDrawQueue.push({
                 text: scoreStr,
                 x: px,
@@ -1640,8 +2125,9 @@ function drawTreeMarkers() {
                 alpha: textAlpha,
                 fillStyle: currentNode.color === 'white' ? THEME.markerTextWhite : THEME.markerTextBlack,
                 font: `bold ${Math.max(10, CELL_WIDTH * 0.38)}px sans-serif`,
-                shadowColor: currentNode.color === 'black' ? 'rgba(0, 0, 0, 1.0)' : 'transparent',
-                shadowBlur: currentNode.color === 'black' ? 4 : 0
+                shadowColor: currentShadowColor,
+                shadowBlur: currentShadowBlur,
+                strokeStyle: backingStroke
             });
         }
     }
@@ -1721,17 +2207,21 @@ function drawGhostStoneOrMarkup() {
             // 5. Draw the cached stone. The baked-in shadow will be cleanly sliced off.
             let cachedImg = null;
             if (nodeBeingEdited.color === 'black') {
-                cachedImg = stoneCache.black;
+                cachedImg = stoneCache.black[0];
             } else {
                 cachedImg = stoneCache.white[0];
             }
 
             if (cachedImg) {
                 if (cachedImg.stroke && cachedImg.core) {
-                    ctx.drawImage(cachedImg.stroke, drawX - (cachedImg.stroke.width / 2), drawY - (cachedImg.stroke.height / 2));
-                    ctx.drawImage(cachedImg.core, drawX - (cachedImg.core.width / 2), drawY - (cachedImg.core.height / 2));
+                    let w = cachedImg.stroke.logicalWidth || cachedImg.stroke.width;
+                    let h = cachedImg.stroke.logicalHeight || cachedImg.stroke.height;
+                    ctx.drawImage(cachedImg.stroke, drawX - (w / 2), drawY - (h / 2), w, h);
+                    ctx.drawImage(cachedImg.core, drawX - (w / 2), drawY - (h / 2), w, h);
                 } else {
-                    ctx.drawImage(cachedImg, drawX - (cachedImg.width / 2), drawY - (cachedImg.height / 2));
+                    let w = cachedImg.logicalWidth || cachedImg.width;
+                    let h = cachedImg.logicalHeight || cachedImg.height;
+                    ctx.drawImage(cachedImg, drawX - (w / 2), drawY - (h / 2), w, h);
                 }
             }
 
@@ -1782,31 +2272,199 @@ function drawGhostStoneOrMarkup() {
     }
 }
 
+function updateThemePreviewCanvas() {
+    const pCanvas = document.getElementById('theme-preview-canvas');
+    if (!pCanvas) return;
+
+    const parent = pCanvas.parentElement;
+    const baseRect = parent.getBoundingClientRect();
+    if (baseRect.width === 0) return;
+
+    // Force the container height to perfectly fit 5 rows (5.2 cells) instead of 6 (6.2 cells)
+    parent.style.height = `${baseRect.width * (5.2 / 6.2)}px`;
+
+    const rect = parent.getBoundingClientRect();
+    if (rect.height === 0) return;
+
+    const pctx = pCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    pCanvas.width = rect.width * dpr;
+    pCanvas.height = rect.height * dpr;
+
+    pctx.setTransform(1, 0, 0, 1, 0, 0);
+    pctx.scale(dpr, dpr);
+
+    // --- ISOLATED PREVIEW GEOMETRY ---
+    // 6.2 cells across allows 6 columns (A->F) with a nice 0.4 cell padding on the right edge
+    const cellW = rect.width / 6.2;
+    const marginX = cellW * 0.8;
+    const cellH = cellW;
+    const marginY = marginX;
+
+    const drawW = rect.width;
+    const drawH = rect.height;
+
+    // 1. Board Background
+    const isBoardMinimal = document.body.classList.contains('board-minimal') || document.body.classList.contains('board-midnight');
+    if (!isBoardMinimal && textures.board.complete && textures.board.naturalWidth > 0) {
+        pctx.imageSmoothingEnabled = true;
+        pctx.imageSmoothingQuality = 'high';
+        // Use drawW for both axes so the woodgrain remains perfectly square and doesn't squish
+        pctx.drawImage(textures.board, 0, 0, drawW * 4, drawW * 4);
+    } else {
+        pctx.fillStyle = THEME.boardColorFallback;
+        pctx.fillRect(0, 0, drawW, drawH);
+    }
+
+    // 2. Sandalwood Pattern Hole Punch
+    const isSandalwood = document.body.classList.contains('board-sandalwood');
+    pctx.save();
+    if (isSandalwood) {
+        pctx.beginPath();
+        pctx.rect(0, 0, drawW, drawH);
+        const maskRadius = Math.max(1.5, cellW * THEME.starPointRadiusMultiplier) * 2.75;
+        const spX = marginX + (3 * cellW);
+        const spY = marginY + (3 * cellH);
+        pctx.moveTo(spX + maskRadius, spY);
+        pctx.arc(spX, spY, maskRadius, 0, 2 * Math.PI, true);
+        pctx.clip();
+    }
+
+    // 3. Grid Lines
+    pctx.strokeStyle = THEME.gridLineColor;
+    pctx.lineWidth = Math.max(1.0, cellW * THEME.gridLineWidthMultiplier);
+    pctx.beginPath();
+
+    // Draw 6 Vertical Lines
+    for (let i = 0; i <= 5; i++) {
+        const posX = marginX + (i * cellW);
+        pctx.moveTo(posX, marginY); pctx.lineTo(posX, drawH);
+    }
+    // Draw 5 Horizontal Lines
+    for (let i = 0; i <= 4; i++) {
+        const posY = marginY + (i * cellH);
+        pctx.moveTo(marginX, posY); pctx.lineTo(drawW, posY);
+    }
+    pctx.stroke();
+
+    // 4. Sandalwood Border Loop
+    if (isSandalwood) {
+        const trackW = cellW * 0.40;
+        const inL = marginX; const inT = marginY;
+        const outL = inL - trackW; const outT = inT - trackW;
+
+        pctx.beginPath();
+        pctx.moveTo(inL, inT); pctx.lineTo(drawW, inT);
+        pctx.moveTo(inL, inT); pctx.lineTo(inL, drawH);
+        pctx.moveTo(outL, outT); pctx.lineTo(drawW, outT);
+        pctx.moveTo(outL, outT); pctx.lineTo(outL, drawH);
+        pctx.lineWidth = Math.max(0.5, cellW * THEME.gridLineWidthMultiplier * 0.8);
+        pctx.stroke();
+
+        pctx.fillStyle = THEME.gridLineColor;
+        pctx.textAlign = 'center';
+        pctx.textBaseline = 'middle';
+        let fontSize = Math.floor(trackW * 0.70);
+        pctx.font = `${fontSize}px sans-serif`;
+
+        const midL = outL + (trackW / 2);
+        const midT = outT + (trackW / 2);
+        const targetSpacing = fontSize * 1.15;
+
+        // Dynamically calculate how many symbols fit the canvas width/height
+        const hCount = Math.ceil((drawW - outL) / targetSpacing);
+        const vCount = Math.ceil((drawH - outT) / targetSpacing);
+
+        for (let i = 0; i <= hCount; i++) {
+            pctx.fillText('❖', midL + (i * targetSpacing), midT + (fontSize * 0.05));
+        }
+        for (let i = 1; i <= vCount; i++) {
+            pctx.fillText('❖', midL, midT + (i * targetSpacing) + (fontSize * 0.05));
+        }
+    }
+    pctx.restore();
+
+    // 5. Star Point (D16 -> Col 3, Row 3)
+    const radius = Math.max(1.5, cellW * THEME.starPointRadiusMultiplier);
+    const spX = marginX + (3 * cellW);
+    const spY = marginY + (3 * cellH);
+
+    if (isSandalwood && textures.starSvg && textures.starSvg.complete && textures.starSvg.naturalWidth > 0) {
+        const svgSize = (radius * 2) * 5.38;
+        pctx.drawImage(textures.starSvg, spX - (svgSize * 0.51232), spY - (svgSize * 0.50072), svgSize, svgSize);
+    } else {
+        pctx.fillStyle = THEME.starPointColor;
+        pctx.beginPath();
+        pctx.arc(spX, spY, radius, 0, 2 * Math.PI);
+        pctx.fill();
+    }
+
+    // 6. Render Stones
+    const drawPreviewStone = (x, y, color) => {
+        const px = marginX + (x * cellW);
+        const py = marginY + (y * cellH);
+        let cachedImg = color === 'black' ? stoneCache.black[0] : stoneCache.white[0];
+
+        if (cachedImg) {
+            // Scale the cached stones (which were sized for the main board) down to the mini board
+            const cacheCellW = stoneCache.cellWidth;
+            const scale = cellW / cacheCellW;
+
+            if (cachedImg.stroke && cachedImg.core) {
+                let w = (cachedImg.stroke.logicalWidth || cachedImg.stroke.width) * scale;
+                let h = (cachedImg.stroke.logicalHeight || cachedImg.stroke.height) * scale;
+                pctx.drawImage(cachedImg.stroke, px - w/2, py - h/2, w, h);
+                pctx.drawImage(cachedImg.core, px - w/2, py - h/2, w, h);
+            } else {
+                let w = (cachedImg.logicalWidth || cachedImg.width) * scale;
+                let h = (cachedImg.logicalHeight || cachedImg.height) * scale;
+                pctx.drawImage(cachedImg, px - w/2, py - h/2, w, h);
+            }
+        }
+    };
+
+    // Draw the stones
+    if (stoneCache.black[0] && stoneCache.white[0]) {
+        drawPreviewStone(2, 2, 'black'); // C17
+        drawPreviewStone(3, 2, 'white'); // D17
+    }
+}
+
 function drawSingleStone(x, y, color, opacity, pass = 'both') {
     const px = MARGIN_X + (x * CELL_WIDTH);
     const py = MARGIN_Y + (y * CELL_HEIGHT);
 
     ctx.globalAlpha = opacity;
 
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
     let cachedImg = null;
+    const skinIndex = (x * 31 + y * 17) % 3;
     if (color === 'black') {
-        cachedImg = stoneCache.black;
+        cachedImg = stoneCache.black[skinIndex] || stoneCache.black[0];
     } else {
-        const skinIndex = (x * 31 + y * 17) % 3;
-        cachedImg = stoneCache.white[skinIndex];
+        cachedImg = stoneCache.white[skinIndex] || stoneCache.white[0];
     }
 
     if (cachedImg) {
         if (cachedImg.stroke && cachedImg.core) {
+            let w = cachedImg.stroke.logicalWidth || cachedImg.stroke.width;
+            let h = cachedImg.stroke.logicalHeight || cachedImg.stroke.height;
+
             // Respect the two-pass rendering system so strokes stay on the bottom
+            // Provide exact width/height arguments to correctly downscale retina images
             if (pass === 1 || pass === 'both') {
-                ctx.drawImage(cachedImg.stroke, px - (cachedImg.stroke.width / 2), py - (cachedImg.stroke.height / 2));
+                ctx.drawImage(cachedImg.stroke, px - (w / 2), py - (h / 2), w, h);
             }
             if (pass === 2 || pass === 'both') {
-                ctx.drawImage(cachedImg.core, px - (cachedImg.core.width / 2), py - (cachedImg.core.height / 2));
+                ctx.drawImage(cachedImg.core, px - (w / 2), py - (h / 2), w, h);
             }
         } else {
-            ctx.drawImage(cachedImg, px - (cachedImg.width / 2), py - (cachedImg.height / 2));
+            let w = cachedImg.logicalWidth || cachedImg.width;
+            let h = cachedImg.logicalHeight || cachedImg.height;
+            ctx.drawImage(cachedImg, px - (w / 2), py - (h / 2), w, h);
         }
     }
 
@@ -1852,7 +2510,9 @@ function drawMarkerSymbol(x, y, stoneColor, markType, labelText, isGhost) {
         ctx.ellipse(pixelX, pixelY, CELL_WIDTH * 0.35, CELL_HEIGHT * 0.35, 0, 0, 2 * Math.PI);
         ctx.clip();
 
-        if (textures.board.complete && textures.board.naturalWidth > 0) {
+        const isBoardMinimal = document.body.classList.contains('board-minimal') || document.body.classList.contains('board-midnight');
+
+        if (!isBoardMinimal && textures.board.complete && textures.board.naturalWidth > 0) {
             ctx.drawImage(textures.board, 0, 0, boardWidth, boardHeight);
         } else {
             ctx.fillStyle = THEME.boardColorFallback;
@@ -1884,23 +2544,42 @@ function drawMarkerSymbol(x, y, stoneColor, markType, labelText, isGhost) {
     }
 
     if (isShape) {
-        // High contrast backing outline if drawn over KataBubbles
-        if (hasBubble || (stoneColor === 'white' && hasScoreTextOnStone)) {
-            ctx.lineWidth = THEME.markupLineWidth + 1.5;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-            ctx.stroke();
+        let needsBacking = false;
+        let backingStyle = '';
 
-            ctx.lineWidth = THEME.markupLineWidth;
-            ctx.strokeStyle = drawColor;
+        const isStoneIvory = document.body.classList.contains('stone-ivory');
+
+        if (isStoneIvory && stoneColor) {
+            needsBacking = true;
+            backingStyle = stoneColor === 'black' ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.75)';
+        }
+        else if (hasBubble || (stoneColor === 'white' && hasScoreTextOnStone)) {
+            needsBacking = true;
+            backingStyle = 'rgba(255, 255, 255, 0.75)';
         } else if (stoneColor === 'black' && hasScoreTextOnStone) {
-            ctx.lineWidth = THEME.markupLineWidth + 1.5;
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.75)';
+            needsBacking = true;
+            backingStyle = 'rgba(0, 0, 0, 0.75)';
+        }
+
+        if (needsBacking) {
+            // 1. Thicker backing so it forms a true halo
+            ctx.lineWidth = THEME.markupLineWidth + 3;
+            ctx.strokeStyle = backingStyle;
+            ctx.lineJoin = 'round'; // Prevents sharp graphical spikes on triangle corners
             ctx.stroke();
 
+            // 2. Add 0.5px weight to the main shape to counter the anti-aliasing edge bleed
+            ctx.lineWidth = THEME.markupLineWidth + 0.5;
+            ctx.strokeStyle = drawColor;
+        } else {
+            // Standard reset if no backing is applied
             ctx.lineWidth = THEME.markupLineWidth;
             ctx.strokeStyle = drawColor;
         }
+
+        ctx.lineJoin = 'miter'; // Ensure the core shape has sharp, traditional corners
         ctx.stroke();
+
     } else if (markType === 'label' || markType === 'erase_ghost') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1922,24 +2601,37 @@ function drawMarkerSymbol(x, y, stoneColor, markType, labelText, isGhost) {
                 ctx.fillText(finalLabel, pixelX, pixelY + 1);
             }
         } else {
-            // Frosted glass backing for markup drawn over White stones displaying score
-            if (stoneColor === 'white' && hasScoreTextOnStone) {
+            const isStoneIvory = document.body.classList.contains('stone-ivory');
+
+            if (!isStoneIvory && stoneColor === 'white' && hasScoreTextOnStone) {
                 ctx.beginPath();
                 ctx.ellipse(pixelX, pixelY, CELL_WIDTH * 0.40, CELL_HEIGHT * 0.40, 0, 0, 2 * Math.PI);
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.fill();
             }
 
-            if (hasBubble || (stoneColor === 'white' && hasScoreTextOnStone)) {
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
-                ctx.strokeText(finalLabel, pixelX, pixelY + 1);
+            let needsTextBacking = false;
+            let textBackingStyle = '';
+
+            if (isStoneIvory && stoneColor) {
+                needsTextBacking = true;
+                textBackingStyle = stoneColor === 'black' ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.75)';
+            } else if (hasBubble || (stoneColor === 'white' && hasScoreTextOnStone)) {
+                needsTextBacking = true;
+                textBackingStyle = 'rgba(255, 255, 255, 1)';
             } else if (stoneColor === 'black' && hasScoreTextOnStone) {
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+                needsTextBacking = true;
+                textBackingStyle = 'rgba(0, 0, 0, 1)';
+            }
+
+            if (needsTextBacking) {
+                ctx.lineWidth = 3.5; // Thicker halo for text to match the shapes
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = textBackingStyle;
                 ctx.strokeText(finalLabel, pixelX, pixelY + 1);
             }
 
+            // Fill text naturally paints directly over the exact center without stroke-bleed issues
             ctx.fillStyle = drawColor;
             ctx.fillText(finalLabel, pixelX, pixelY + 1);
         }
@@ -2480,10 +3172,10 @@ function drawAnalysisChart() {
         chartCtx.closePath();
 
         let grad = chartCtx.createLinearGradient(0, padT, 0, padT + chartH);
-        grad.addColorStop(0, '#241c17');
-        grad.addColorStop(0.5, '#241c17');
-        grad.addColorStop(0.5, '#e0d5c1');
-        grad.addColorStop(1, '#e0d5c1');
+        grad.addColorStop(0, THEME.uiBlkStone);
+        grad.addColorStop(0.5, THEME.uiBlkStone);
+        grad.addColorStop(0.5, THEME.uiWhtStone);
+        grad.addColorStop(1, THEME.uiWhtStone);
 
         chartCtx.fillStyle = grad;
         chartCtx.fill();
@@ -2572,18 +3264,18 @@ function drawAnalysisChart() {
         chartCtx.moveTo(px, padT);
         chartCtx.lineTo(px, padT + chartH);
 
-        // Thin, blue, uninterrupted line tracking the AI's exact position
-        chartCtx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+        // Thin, uninterrupted line tracking the AI's exact position
+        chartCtx.strokeStyle = 'rgba(59, 130, 246, 0.8)'; // Always KataGo Blue
         chartCtx.lineWidth = 1.5;
         chartCtx.stroke();
     }
 
     // Y-Axis Annotations
-    chartCtx.fillStyle = '#f4ebd8'; // Ivory white
+    chartCtx.fillStyle = THEME.textMain;
     chartCtx.font = 'bold 9px sans-serif';
     chartCtx.textAlign = 'left';
 
-    chartCtx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+    chartCtx.shadowColor = THEME.chartTextShadow;
     chartCtx.shadowBlur = 3;
     chartCtx.shadowOffsetX = 1;
     chartCtx.shadowOffsetY = 0;
@@ -4282,6 +4974,22 @@ document.getElementById('btn-save-as').addEventListener('click', (e) => {
 // ============================================================================
 const optionsOverlay = document.getElementById('options-modal-overlay');
 
+// Options Modal Tab Switching Logic
+const tabButtons = document.querySelectorAll('.tab-btn');
+
+tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const modal = btn.closest('.modal-box');
+
+        modal.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        modal.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const targetPaneId = btn.getAttribute('data-tab');
+        document.getElementById(targetPaneId).classList.add('active');
+    });
+});
+
 // --- HOTKEY SUB-MENU LOGIC ---
 const hotkeysOverlay = document.getElementById('hotkeys-modal-overlay');
 let tempHotkeys = {};
@@ -4490,6 +5198,102 @@ async function validatePathField(inputId) {
 document.getElementById('btn-options-bottom').addEventListener('click', (e) => {
     e.stopPropagation();
 
+    const themeSelect = document.getElementById('opt-theme-select');
+    const presetSelect = document.getElementById('opt-preset-select');
+    const boardSelect = document.getElementById('opt-board-select');
+    const stoneSelect = document.getElementById('opt-stone-select');
+
+    // 1. Load active settings
+    themeSelect.value = appSettings.theme;
+    boardSelect.value = appSettings.boardStyle || 'kaya';
+    stoneSelect.value = appSettings.stoneStyle || 'shell';
+
+    // 2. Define the exact matches for the presets
+    const presets = {
+        'traditional': { board: 'kaya', stone: 'shell' },
+        'shosoin': { board: 'sandalwood', stone: 'ivory' },
+        'minimal': { board: 'minimal', stone: 'minimal' },
+        'midnight': { board: 'midnight', stone: 'midnight' }
+    };
+
+    // 3. Helper to update the "Preset" dropdown based on sub-selections
+    const updatePresetDropdown = () => {
+        let matched = null;
+        for (let [key, combo] of Object.entries(presets)) {
+            if (combo.board === boardSelect.value && combo.stone === stoneSelect.value) {
+                matched = key;
+                break;
+            }
+        }
+
+        let customOption = presetSelect.querySelector('option[value="custom"]');
+
+        if (matched) {
+            // It matches a preset, so destroy the custom option if it exists
+            if (customOption) customOption.remove();
+            presetSelect.value = matched;
+        } else {
+            // It's a mixed combination, so dynamically build and select the custom option
+            if (!customOption) {
+                customOption = document.createElement('option');
+                customOption.value = 'custom';
+                customOption.text = 'Custom';
+                customOption.hidden = true; // Makes it unselectable inside the dropdown list
+                presetSelect.appendChild(customOption);
+            }
+            presetSelect.value = 'custom';
+        }
+    };
+    updatePresetDropdown();
+
+    // 4. Live Preview Triggers
+    const triggerLivePreview = () => {
+        applyTheme(themeSelect.value, boardSelect.value, stoneSelect.value, true);
+    };
+
+    // Helper: Automatically adjust the settings swatches to 65% for dark/complex boards
+    const autoAdjustBubbleOpacity = (boardStyle) => {
+        const targetAlpha = (boardStyle === 'sandalwood' || boardStyle === 'midnight') ? 0.65 : 0.85;
+
+        ['best', 'good', 'okay', 'bad', 'terrible'].forEach(k => {
+            const swatch = document.getElementById(`swatch-${k}`);
+            if (swatch && swatch.dataset.color) {
+                // Safely extract the RGB values and inject the new Alpha
+                const match = swatch.dataset.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                if (match) {
+                    const newColor = `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${targetAlpha})`;
+                    swatch.dataset.color = newColor;
+                    swatch.style.background = newColor;
+                }
+            }
+        });
+    };
+
+    // If they change the UI Theme
+    themeSelect.onchange = triggerLivePreview;
+
+    // If they change the Master Preset
+    presetSelect.onchange = (ev) => {
+        const val = ev.target.value;
+        if (presets[val]) {
+            boardSelect.value = presets[val].board;
+            stoneSelect.value = presets[val].stone;
+            updatePresetDropdown(); // Clean up the custom element immediately
+            autoAdjustBubbleOpacity(presets[val].board);
+            triggerLivePreview();
+        }
+    };
+
+    // If they manually change the board or stone (which might shift preset to "custom")
+    const onSubChange = () => {
+        updatePresetDropdown();
+        autoAdjustBubbleOpacity(boardSelect.value);
+        triggerLivePreview();
+    };
+
+    boardSelect.onchange = onSubChange;
+    stoneSelect.onchange = onSubChange;
+
     document.getElementById('opt-current-move').checked = appSettings.optCurrentMove;
     document.getElementById('opt-coord-highlight').checked = appSettings.optCoordHighlight;
     document.getElementById('opt-show-coords').checked = appSettings.optShowCoords;
@@ -4511,9 +5315,8 @@ document.getElementById('btn-options-bottom').addEventListener('click', (e) => {
         if (!passSlider) return;
         const percent = ((passSlider.value - 1) / 4) * 100;
 
-        // EDIT SLIDER FILL AND BACKGROUND COLORS HERE:
-        // First variable is the Fill color, second variable is the Empty Background color
-        passSlider.style.background = `linear-gradient(to right, var(--text-main) ${percent}%, var(--input-bg) ${percent}%)`;
+        // Uses native CSS variable for instantaneous theme switching
+        passSlider.style.background = `linear-gradient(to right, var(--ui-slider-fill) ${percent}%, var(--input-bg) ${percent}%)`;
     };
 
     const renderPassInputs = () => {
@@ -4560,7 +5363,26 @@ document.getElementById('btn-options-bottom').addEventListener('click', (e) => {
     validatePathField('opt-engine-network');
     validatePathField('opt-engine-config');
 
+    // Populate Bubble Settings & Wire Data Attributes
+    ['best', 'good', 'okay', 'bad', 'terrible'].forEach(k => {
+        const swatch = document.getElementById(`swatch-${k}`);
+        swatch.dataset.color = appSettings.bubbleColors[k];
+        swatch.style.background = appSettings.bubbleColors[k];
+    });
+
+    ['good', 'okay', 'bad'].forEach(k => {
+        document.getElementById(`opt-bub-thresh-${k}`).value = appSettings.bubbleThresholds[k];
+    });
+
+    const badInput = document.getElementById('opt-bub-thresh-bad');
+    const terribleLbl = document.getElementById('lbl-terrible-thresh');
+    terribleLbl.innerHTML = `Loss &gt; ${badInput.value}`;
+    badInput.oninput = () => terribleLbl.innerHTML = `Loss &gt; ${badInput.value || 0}`;
+
     optionsOverlay.classList.add('active');
+
+    // Render the mini-board preview once the modal finishes popping open
+    requestAnimationFrame(() => updateThemePreviewCanvas());
 });
 
 document.getElementById('btn-browse-exe').addEventListener('click', async (e) => {
@@ -4855,11 +5677,15 @@ document.getElementById('download-modal-cancel').addEventListener('click', async
 
 // --- RESTORED OPTIONS & CLICK-AWAY LOGIC ---
 document.getElementById('options-modal-cancel').addEventListener('click', () => {
+    applyTheme(appSettings.theme, appSettings.boardStyle, appSettings.stoneStyle, true); // Revert the live preview if they cancel
     optionsOverlay.classList.remove('active');
 });
 
 document.getElementById('options-modal-save').addEventListener('click', async () => {
     // 1. Instantly gather and save settings (No Blocking)
+    appSettings.theme = document.getElementById('opt-theme-select').value;
+    appSettings.boardStyle = document.getElementById('opt-board-select').value;
+    appSettings.stoneStyle = document.getElementById('opt-stone-select').value;
     appSettings.optCurrentMove = document.getElementById('opt-current-move').checked;
     appSettings.optCoordHighlight = document.getElementById('opt-coord-highlight').checked;
     appSettings.optShowCoords = document.getElementById('opt-show-coords').checked;
@@ -4883,6 +5709,14 @@ document.getElementById('options-modal-save').addEventListener('click', async ()
     appSettings.engineExe = document.getElementById('opt-engine-exe').value.trim();
     appSettings.engineNet = document.getElementById('opt-engine-network').value.trim();
     appSettings.engineCfg = document.getElementById('opt-engine-config').value.trim();
+
+    // Save Bubble Settings
+    ['best', 'good', 'okay', 'bad', 'terrible'].forEach(k => {
+        appSettings.bubbleColors[k] = document.getElementById(`swatch-${k}`).dataset.color;
+    });
+    ['good', 'okay', 'bad'].forEach(k => {
+        appSettings.bubbleThresholds[k] = parseFloat(document.getElementById(`opt-bub-thresh-${k}`).value) || 0;
+    });
 
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings));
     skipSaveConfirm = !appSettings.optSaveConfirm;
@@ -4908,10 +5742,6 @@ document.getElementById('options-modal-save').addEventListener('click', async ()
         render();
     } else {
         bootEngine();
-
-        // This acts exactly like loading an SGF: it unpauses the engine,
-        // hides the red error banner, and kickstarts the analysis loops.
-        isAnalysisPaused = false;
         syncAndRender();
     }
 });
@@ -4923,11 +5753,17 @@ document.addEventListener('click', (e) => {
     if (e.target.closest('#confirm-modal-overlay')) return; // Intercepts the bubbling click
 
     if (optionsOverlay.classList.contains('active') && !hotkeysOverlay.classList.contains('active')) {
-        const optBox = optionsOverlay.querySelector('.modal-box');
-        if (!optBox.contains(e.target) && !optBox.contains(globalMousedownTarget) && !e.target.closest('#btn-options-bottom') && !e.target.closest('#download-modal-overlay')) {
-            optionsOverlay.classList.remove('active');
-        }
+    const optBox = optionsOverlay.querySelector('.modal-box');
+
+    // Ensure clicking the color picker (or drag-selecting text inside it) doesn't close the Options modal
+    const isClickInColorPicker = e.target.closest('#color-picker-popover') || (globalMousedownTarget && globalMousedownTarget.closest('#color-picker-popover'));
+
+    if (!optBox.contains(e.target) && !optBox.contains(globalMousedownTarget) && !e.target.closest('#btn-options-bottom') && !e.target.closest('#download-modal-overlay') && !isClickInColorPicker) {
+        // Revert the live preview to the saved settings
+        applyTheme(appSettings.theme, appSettings.boardStyle, appSettings.stoneStyle, true);
+        optionsOverlay.classList.remove('active');
     }
+}
 
     if (aboutOverlay.classList.contains('active')) {
         const aboutBox = aboutOverlay.querySelector('.modal-box');
@@ -5079,6 +5915,7 @@ if (window.electronAPI && window.electronAPI.getDefaultEnginePaths) {
 }
 
 updateNewButtonState();
+loadTextures();
 
 document.querySelectorAll('.info-input, .comments-box').forEach(el => {
     el.addEventListener('input', updateNewButtonState);
@@ -5349,4 +6186,226 @@ document.fonts.ready.then(() => {
     render();
     initInputUX();
     configureOSSpecificUI();
+});
+
+// ============================================================================
+// CUSTOM COLOR PICKER LOGIC
+// ============================================================================
+let activeBubbleKey = null;
+const cpPopover = document.getElementById('color-picker-popover');
+const cpText = document.getElementById('cp-text');
+const cpHexText = document.getElementById('cp-hex-text');
+const cpHue = document.getElementById('cp-hue');
+const cpSat = document.getElementById('cp-sat');
+const cpLit = document.getElementById('cp-lit');
+const cpAlpha = document.getElementById('cp-alpha');
+const cpHVal = document.getElementById('cp-h-val');
+const cpSVal = document.getElementById('cp-s-val');
+const cpLVal = document.getElementById('cp-l-val');
+const cpAVal = document.getElementById('cp-a-val');
+
+const rgbToHex = (r, g, b) => {
+    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+};
+
+// Securely parse ANY string (Hex, RGBA, Named) into absolute RGBA values using the browser
+const parseColorToRgba = (colorStr) => {
+    const div = document.createElement('div');
+    div.style.display = 'none';
+    div.style.color = colorStr;
+    document.body.appendChild(div);
+    const computed = window.getComputedStyle(div).color;
+    document.body.removeChild(div);
+
+    const match = computed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (match) {
+        return {
+            r: parseInt(match[1], 10),
+            g: parseInt(match[2], 10),
+            b: parseInt(match[3], 10),
+            a: match[4] !== undefined ? parseFloat(match[4]) : 1
+        };
+    }
+    return { r: 0, g: 0, b: 0, a: 1 };
+};
+
+// Math to convert RGB to Hue/Sat/Lit for the sliders
+const rgbToHsl = (r, g, b) => {
+    r /= 255; g /= 255; b /= 255;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) h = s = 0;
+    else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
+
+// Math to convert Hue/Sat/Lit back to absolute RGB
+const hslToRgb = (h, s, l) => {
+    h /= 360; s /= 100; l /= 100;
+    let r, g, b;
+    if (s === 0) r = g = b = l;
+    else {
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1; if (t > 1) t -= 1;
+            if (t < 1/6) return p + (q - p) * 6 * t;
+            if (t < 1/2) return q;
+            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        };
+        let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        let p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+};
+
+// Synchronizes the text, swatches, and the live colored gradients on the tracks
+const updateUIColors = (r, g, b, a) => {
+    const rgbaStr = `rgba(${r}, ${g}, ${b}, ${a})`;
+
+    // Live update using backgroundImage so it doesn't overwrite our CSS anti-bleed rules
+    cpSat.style.backgroundImage = `linear-gradient(to right, hsl(${cpHue.value}, 0%, ${cpLit.value}%), hsl(${cpHue.value}, 100%, ${cpLit.value}%))`;
+    cpLit.style.backgroundImage = `linear-gradient(to right, #000, hsl(${cpHue.value}, ${cpSat.value}%, 50%), #fff)`;
+    cpAlpha.style.backgroundImage = `linear-gradient(to right, rgba(${r},${g},${b},0), rgba(${r},${g},${b},1))`;
+
+    cpText.value = rgbaStr;
+    cpHexText.value = rgbToHex(r, g, b);
+
+    if (activeBubbleKey) {
+        const swatch = document.getElementById(`swatch-${activeBubbleKey}`);
+        if (swatch) {
+            swatch.dataset.color = rgbaStr;
+            swatch.style.background = rgbaStr;
+        }
+    }
+};
+
+// When any slider is dragged
+const onSliderInput = () => {
+    const h = parseInt(cpHue.value);
+    const s = parseInt(cpSat.value);
+    const l = parseInt(cpLit.value);
+    const a = parseFloat(cpAlpha.value);
+
+    cpHVal.innerHTML = `${h}&deg;`;
+    cpSVal.innerText = `${s}%`;
+    cpLVal.innerText = `${l}%`;
+    cpAVal.innerText = `${Math.round(a * 100)}%`;
+
+    const { r, g, b } = hslToRgb(h, s, l);
+    updateUIColors(r, g, b, a);
+};
+
+[cpHue, cpSat, cpLit, cpAlpha].forEach(el => el.addEventListener('input', onSliderInput));
+
+// Handles sync logic when a user explicitly types a value into an input
+const handleManualInput = (inputValue) => {
+    const { r, g, b, a } = parseColorToRgba(inputValue);
+    const { h, s, l } = rgbToHsl(r, g, b);
+
+    cpHue.value = h;
+    cpSat.value = s;
+    cpLit.value = l;
+    cpAlpha.value = a;
+
+    cpHVal.innerHTML = `${h}&deg;`;
+    cpSVal.innerText = `${s}%`;
+    cpLVal.innerText = `${l}%`;
+    cpAVal.innerText = `${Math.round(a * 100)}%`;
+
+    updateUIColors(r, g, b, a);
+};
+
+// When the user manually types a value in either box
+cpText.addEventListener('input', () => handleManualInput(cpText.value));
+cpHexText.addEventListener('input', () => handleManualInput(cpHexText.value));
+
+// Anchor the popover directly ABOVE the bubble that was clicked
+['best', 'good', 'okay', 'bad', 'terrible'].forEach(k => {
+    const swatch = document.getElementById(`swatch-${k}`);
+    swatch.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activeBubbleKey = k;
+
+        const currentColor = swatch.dataset.color || '#000000';
+        const { r, g, b, a } = parseColorToRgba(currentColor);
+        const { h, s, l } = rgbToHsl(r, g, b);
+
+        cpHue.value = h;
+        cpSat.value = s;
+        cpLit.value = l;
+        cpAlpha.value = a;
+
+        cpHVal.innerHTML = `${h}&deg;`;
+        cpSVal.innerText = `${s}%`;
+        cpLVal.innerText = `${l}%`;
+        cpAVal.innerText = `${Math.round(a * 100)}%`;
+
+        updateUIColors(r, g, b, a);
+
+        // Show it first so the browser can calculate its true physical dimensions
+        cpPopover.classList.add('active');
+
+        const rect = swatch.getBoundingClientRect();
+        const popRect = cpPopover.getBoundingClientRect();
+
+        // Dynamically center horizontally, place exactly ABOVE the swatch
+        cpPopover.style.left = `${rect.left + (rect.width / 2) - (popRect.width / 2)}px`;
+        cpPopover.style.top = `${rect.top - popRect.height - 12}px`;
+    });
+});
+
+// Smoothly close the color picker (but nothing else) when clicking outside of it
+document.addEventListener('click', (e) => {
+    // globalMousedownTarget prevents the popover from closing if you drag-select text inside it and release outside
+    if (cpPopover.classList.contains('active') && !cpPopover.contains(e.target) && !cpPopover.contains(globalMousedownTarget)) {
+        cpPopover.classList.remove('active');
+    }
+});
+
+// ============================================================================
+// RESET BUBBLE DEFAULTS
+// ============================================================================
+document.getElementById('btn-reset-bubbles').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Hardcoded factory defaults
+    const defaultColors = {
+        best: 'rgba(59, 130, 246, 0.85)',
+        good: 'rgba(16, 185, 129, 0.85)',
+        okay: 'rgba(245, 158, 11, 0.85)',
+        bad: 'rgba(239, 68, 68, 0.85)',
+        terrible: 'rgba(127, 29, 29, 0.85)'
+    };
+    const defaultThresh = { good: 2.0, okay: 4.0, bad: 7.0 };
+
+    // Reset Swatches
+    ['best', 'good', 'okay', 'bad', 'terrible'].forEach(k => {
+        const swatch = document.getElementById(`swatch-${k}`);
+        if (swatch) {
+            swatch.dataset.color = defaultColors[k];
+            swatch.style.background = defaultColors[k];
+        }
+    });
+
+    // Reset Thresholds
+    ['good', 'okay', 'bad'].forEach(k => {
+        const input = document.getElementById(`opt-bub-thresh-${k}`);
+        if (input) input.value = defaultThresh[k];
+    });
+
+    // Reset the calculated terrible label
+    const terribleLbl = document.getElementById('lbl-terrible-thresh');
+    if (terribleLbl) terribleLbl.innerHTML = `Loss &gt; 7.0`;
 });

@@ -6,85 +6,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./style.css">
-
-    <script>
-        const THEME = {
-            // Board Appearance
-            boardColorFallback: '#DCB35C',
-            gridLineColor: '#2b1c14',
-            gridLineWidthMultiplier: 0.035,
-            starPointColor: '#2b1c14',
-            coordTextColor: '#2b1c14',
-            coordTextHighlightColor: '#c43b3b',
-
-            // Typography Config
-            coordLetterFontFamily: '"Google Sans", sans-serif',
-            coordLetterFontWeight: '300',
-            coordLetterSizeMultiplier: 0.40,
-            coordNumberFontFamily: '"Barlow Condensed", sans-serif',
-            coordNumberFontWeight: '400',
-            coordNumberSizeMultiplier: 0.47,
-
-            // Stone Shading & Geometry
-            stoneBlackStrokeTopLeft: 'rgba(137, 101, 93, 1)',
-            stoneBlackStrokeBottomRight: 'rgba(0, 0, 0, 1)',
-            stoneBlackStrokeMultiplier: 0.03,
-            stoneWhiteStrokeTopLeft: 'rgba(175, 154, 148, 1)',
-            stoneWhiteStrokeBottomRight: 'rgba(137, 101, 93, 1)',
-            stoneWhiteStrokeMultiplier: 0.03,
-            stoneShadowColor: 'rgba(74, 51, 27, 1)',
-            stoneShadowOffsetXMultiplier: 0.04,
-            stoneShadowOffsetYMultiplier: 0.06,
-            stoneShadowBlurMultiplier: 0.2,
-            stoneBlackGapShadowColor: 'rgba(102, 69, 44, 0.4)',
-            stoneWhiteGapShadowColor: 'rgba(140, 96, 70, 0.4)',
-            stoneGapOffsetXMultiplier: 0.03,
-            stoneGapOffsetYMultiplier: 0.06,
-
-            // AI Analysis Overlay (KataGo Bubbles)
-            bubbleBaseColor: '#DCB35C',
-            bubbleUnexplored: 'rgba(189, 174, 166, 0.85)',
-            bubbleBest: 'rgba(59, 130, 246, 0.85)',
-            bubbleGood: 'rgba(34, 197, 94, 0.85)',
-            bubbleOkay: 'rgba(223, 213, 42, 0.8)',
-            bubbleBad: 'rgba(249, 115, 22, 0.85)',
-            bubbleTerrible: 'rgba(239, 68, 68, 0.85)',
-            bubbleTextColor: '#ffffff',
-
-            // AI Next-Move Indicators (Tree Projection)
-            markerCurrentBlackColor: 'rgba(255, 255, 255, 1)',
-            markerCurrentWhiteColor: 'rgba(255, 255, 255, 1)',
-            markerCurrentLineWidth: 2,
-            markerNextMainBlackColor: 'rgba(255, 255, 255, 1)',
-            markerNextMainWhiteColor: 'rgba(255, 255, 255, 1)',
-            markerNextMainLineWidth: 2,
-            markerNextAltBlackColor: 'rgba(255, 255, 255, 0.75)',
-            markerNextAltWhiteColor: 'rgba(255, 255, 255, 0.75)',
-            markerNextAltLineWidth: 2,
-            markerTextBlack: '#ffffff',
-            markerTextWhite: '#000000',
-
-            // Tool Markup & Hover States
-            markupGhostBox: '#DCB35C',
-            markupGhostAlpha: 0.5,
-            markupGhostActive: '#fcf8f2',
-            markupBlackStone: '#ffffff',
-            markupWhiteStone: '#000000',
-            markupLineWidth: 2,
-
-            // Sidebar Analysis Chart
-            chartCenterLine: 'rgba(189, 174, 166, 0.3)',
-            chartScoreFill: 'rgba(242, 232, 213, 0.15)',
-            chartScoreLine: 'rgba(242, 232, 213, 0.6)',
-            chartWinrateLine: '#f28b82',
-            chartCurrentMoveLine: '#f4ebd8',
-
-            // Sidebar Interactive Game Tree
-            treeBranchColor: '#bdaea6',
-            treeStoneBlackBorder: '#e0d5c1',
-            treeStoneWhiteBorder: '#241c17'
-        };
-    </script>
+    <link rel="stylesheet" href="./themes.css">
+    <link rel="stylesheet" href="./boards.css">
 </head>
 
 <body>
@@ -164,32 +87,23 @@
                         <div id="analysis-status">Analysis Paused</div>
 
                         <div class="analysis-toggles">
-                            <!-- AI Bubbles (B) -->
                             <button id="toggle-bubbles" class="action-btn active-action graph-toggle-btn" title="Toggle AI Moves">
-                                <svg viewBox="0 0 14 14" width="13" height="13">
-                                    <defs>
-                                        <linearGradient id="ai-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="50%" stop-color="#3b82f6" />
-                                            <stop offset="50%" stop-color="#10b981" />
-                                        </linearGradient>
-                                    </defs>
-                                    <circle cx="7" cy="7" r="7" fill="url(#ai-grad)"></circle>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
                                 </svg>
                             </button>
 
-                            <!-- Score Graph (S) -->
                             <button id="toggle-score-graph" class="action-btn active-action graph-toggle-btn" title="Toggle Score Graph">
-                                <svg viewBox="0 0 24 24" width="16" height="16">
-                                    <path d="M 2 12 C 5 12, 5 4, 8 4 C 11 4, 11 12, 14 12 Z" fill="#222222"></path>
-                                    <path d="M 14 12 L 18 20 L 22 12 Z" fill="#e0d5c1"></path>
-                                    <line x1="2" y1="12" x2="22" y2="12" stroke="#a89e99" stroke-width="1.5"></line>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
                                 </svg>
                             </button>
 
-                            <!-- Winrate Graph (W) -->
                             <button id="toggle-wr-graph" class="action-btn active-action graph-toggle-btn" title="Toggle Winrate Graph">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="2 20 7 13 11 16 16 5 22 8"></polyline>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                                 </svg>
                             </button>
                         </div>
@@ -322,7 +236,7 @@
                 <div class="result-container">
                     <input type="text" class="info-input result-input" id="result-input" placeholder="-">
                     <div class="sliding-door" id="result-door" title="Click to reveal">
-                        <span class="door-arrow">☰</span>
+                        <span class="door-arrow">◁</span>
                         <span class="door-text">Click to reveal</span>
                     </div>
                 </div>
@@ -382,115 +296,207 @@
     <!-- Main Options Modal -->
     <div id="options-modal-overlay" class="modal-overlay">
         <div class="modal-box">
-            <h3 class="modal-title" style="margin-bottom: 15px;">Options</h3>
-
-            <!-- 2-Column Grid Layout -->
-            <div class="options-grid">
-
-                <!-- Left Column: Visual Indicators -->
-                <div class="options-section mb-0">
-                    <h4 class="options-heading">Visual Indicators</h4>
-
-                    <label class="option-label">
-                        <input type="checkbox" id="opt-current-move">
-                        <div class="indicator-preview">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-main)" stroke-width="2.5"></circle></svg>
-                        </div>
-                        Current move
-                    </label>
-
-                    <label class="option-label">
-                        <input type="checkbox" id="opt-next-move">
-                        <div class="indicator-preview">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-main)" stroke-width="2" stroke-dasharray="4,3"></circle></svg>
-                        </div>
-                        Next move
-                    </label>
-
-                    <label class="option-label">
-                        <input type="checkbox" id="opt-alt-move">
-                        <div class="indicator-preview">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-muted)" stroke-width="2.5"></circle></svg>
-                        </div>
-                        Alt. variation move
-                    </label>
-
-                    <label class="option-label">
-                        <input type="checkbox" id="opt-alt-next-move">
-                        <div class="indicator-preview">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-muted)" stroke-width="2" stroke-dasharray="4,3"></circle></svg>
-                        </div>
-                        Alt. next move
-                    </label>
-
-                    <label class="option-label">
-                        <input type="checkbox" id="opt-show-coords">
-                        <div class="indicator-preview preview-text-main">19</div>
-                        Show coordinates
-                    </label>
-
-                    <label class="option-label mb-0">
-                        <input type="checkbox" id="opt-coord-highlight">
-                        <div class="indicator-preview preview-text-highlight">A</div>
-                        Coordinate highlight
-                    </label>
+            <div class="tabs-nav">
+                <h3 class="modal-title">Options</h3>
+                <div class="tabs-group">
+                    <button class="tab-btn active" data-tab="tab-general">General</button>
+                    <button class="tab-btn" data-tab="tab-themes">Appearance</button>
                 </div>
+            </div>
 
-                <!-- Right Column: Toggles & Hotkeys -->
-                <div class="flex-col-gap">
-                    <div class="options-section mb-0">
-                        <h4 class="options-heading">Confirmation Toggles</h4>
-                        <label class="option-label" style="margin-bottom: 6px;">
-                            <input type="checkbox" id="opt-save-confirm"> Save confirmation
-                        </label>
-                        <label class="option-label" style="margin-bottom: 6px;">
-                            <input type="checkbox" id="opt-new-confirm"> New Game confirmation
-                        </label>
-                        <label class="option-label mb-0">
-                            <input type="checkbox" id="opt-delete-confirm"> Delete Node confirmation
-                        </label>
+            <div class="tab-content">
+
+                <div id="tab-general" class="tab-pane active">
+                    <div class="options-grid">
+
+                        <div class="options-section mb-0">
+                            <h4 class="options-heading">Visual Indicators</h4>
+
+                            <label class="option-label">
+                                <input type="checkbox" id="opt-current-move">
+                                <div class="indicator-preview">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-main)" stroke-width="2.5"></circle></svg>
+                                </div>
+                                Current move
+                            </label>
+
+                            <label class="option-label">
+                                <input type="checkbox" id="opt-next-move">
+                                <div class="indicator-preview">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-main)" stroke-width="2" stroke-dasharray="4,3"></circle></svg>
+                                </div>
+                                Next move
+                            </label>
+
+                            <label class="option-label">
+                                <input type="checkbox" id="opt-alt-move">
+                                <div class="indicator-preview">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-muted)" stroke-width="2.5"></circle></svg>
+                                </div>
+                                Alt. variation move
+                            </label>
+
+                            <label class="option-label">
+                                <input type="checkbox" id="opt-alt-next-move">
+                                <div class="indicator-preview">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="transparent" stroke="var(--text-muted)" stroke-width="2" stroke-dasharray="4,3"></circle></svg>
+                                </div>
+                                Alt. next move
+                            </label>
+
+                            <label class="option-label">
+                                <input type="checkbox" id="opt-show-coords">
+                                <div class="indicator-preview preview-text-main">19</div>
+                                Show coordinates
+                            </label>
+
+                            <label class="option-label mb-0">
+                                <input type="checkbox" id="opt-coord-highlight">
+                                <div class="indicator-preview preview-text-highlight">A</div>
+                                Coordinate highlight
+                            </label>
+                        </div>
+
+                        <div class="flex-col-gap">
+                            <div class="options-section mb-0">
+                                <h4 class="options-heading">Confirmation Toggles</h4>
+                                <label class="option-label" style="margin-bottom: 6px;">
+                                    <input type="checkbox" id="opt-save-confirm"> Save confirmation
+                                </label>
+                                <label class="option-label" style="margin-bottom: 6px;">
+                                    <input type="checkbox" id="opt-new-confirm"> New Game confirmation
+                                </label>
+                                <label class="option-label mb-0">
+                                    <input type="checkbox" id="opt-delete-confirm"> Delete Node confirmation
+                                </label>
+                            </div>
+
+                            <button id="btn-open-hotkeys" class="action-btn btn-hotkeys">Configure Hotkeys</button>
+                        </div>
+                    </div> <div class="options-section" style="margin-top: 20px;">
+                        <h4 class="options-heading">KataGo Settings</h4>
+                        <div class="engine-input-row">
+                            <span class="info-label engine-label-sm">Number of passes</span>
+                            <input type="range" id="opt-kata-passes-slider" min="1" max="5">
+                            <input type="number" id="opt-kata-passes" class="info-input" min="1" max="5">
+                        </div>
+                        <div class="options-subtext">Number of visits per pass</div>
+                        <div id="kata-passes-container"></div>
                     </div>
 
-                    <!-- Hotkeys Button fills the remaining vertical space -->
-                    <button id="btn-open-hotkeys" class="action-btn btn-hotkeys">Configure Hotkeys</button>
+                    <div class="options-section">
+                        <div class="options-header-row">
+                            <h4 class="options-heading">KataGo Engine</h4>
+                            <button id="btn-auto-download" class="action-btn btn-auto-setup">Auto-Setup</button>
+                        </div>
+                        <div class="engine-input-group">
+                            <span class="info-label engine-label-right">Executable</span>
+                            <input type="text" id="opt-engine-exe" class="info-input filled-input">
+                            <button id="btn-browse-exe" class="action-btn btn-browse">Browse</button>
+                        </div>
+                        <div class="engine-input-group">
+                            <span class="info-label engine-label-right">Network</span>
+                            <input type="text" id="opt-engine-network" class="info-input filled-input">
+                            <button id="btn-browse-net" class="action-btn btn-browse">Browse</button>
+                        </div>
+                        <div class="engine-input-group mb-0">
+                            <span class="info-label engine-label-right">Config</span>
+                            <input type="text" id="opt-engine-config" class="info-input filled-input">
+                            <button id="btn-browse-cfg" class="action-btn btn-browse">Browse</button>
+                        </div>
+                    </div>
                 </div>
 
-            </div> <!-- End of 2-Column Grid -->
+                <div id="tab-themes" class="tab-pane">
 
-            <div class="options-section">
-                <h4 class="options-heading">KataGo Settings</h4>
-                <div class="engine-input-row">
-                    <span class="info-label engine-label-sm">Number of passes</span>
-                    <input type="range" id="opt-kata-passes-slider" min="1" max="5">
-                    <input type="number" id="opt-kata-passes" class="info-input" min="1" max="5">
-                </div>
-                <div class="options-subtext">Number of visits per pass</div>
-                <div id="kata-passes-container"></div>
-            </div>
+                    <div class="options-section">
+                        <div class="engine-input-row mb-0">
+                            <h4 class="options-heading" style="margin-bottom: 0; width: 85px; flex-shrink: 0;">UI Theme</h4>
+                            <select id="opt-theme-select" class="info-input filled-input" style="flex: 1; cursor: pointer;">
+                                <option value="mocha">Mocha</option>
+                                <option value="walnut">Walnut</option>
+                                <option value="dark">Dark Slate</option>
+                                <option value="cream">Cream</option>
+                                <option value="light">Light</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <div class="options-section">
-                <div class="options-header-row">
-                    <h4 class="options-heading">KataGo Engine</h4>
-                    <button id="btn-auto-download" class="action-btn btn-auto-setup">Auto-Setup</button>
-                </div>
-                <div class="engine-input-group">
-                    <span class="info-label engine-label-right">Executable</span>
-                    <input type="text" id="opt-engine-exe" class="info-input filled-input">
-                    <button id="btn-browse-exe" class="action-btn btn-browse">Browse</button>
-                </div>
-                <div class="engine-input-group">
-                    <span class="info-label engine-label-right">Network</span>
-                    <input type="text" id="opt-engine-network" class="info-input filled-input">
-                    <button id="btn-browse-net" class="action-btn btn-browse">Browse</button>
-                </div>
-                <div class="engine-input-group mb-0">
-                    <span class="info-label engine-label-right">Config</span>
-                    <input type="text" id="opt-engine-config" class="info-input filled-input">
-                    <button id="btn-browse-cfg" class="action-btn btn-browse">Browse</button>
-                </div>
-            </div>
+                    <div class="options-section">
+                        <h4 class="options-heading">Board & Stone Theme</h4>
 
-            <div class="modal-actions" style="margin-top: 20px;">
+                        <div class="engine-input-row" style="margin-bottom: 15px;">
+                            <span class="info-label">Go Set</span>
+                            <select id="opt-preset-select" class="info-input filled-input" style="flex: 1; cursor: pointer;">
+                                <option value="traditional">Traditional Japanese</option>
+                                <option value="shosoin">Shōsō-in Treasure</option>
+                                <option value="minimal">Minimal</option>
+                                <option value="midnight">Midnight</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; align-items: stretch;">
+
+                            <div class="theme-preview-box" style="margin: 0; flex: 1; aspect-ratio: 1 / 1; height: auto;">
+                                <canvas id="theme-preview-canvas"></canvas>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: flex-start;">
+                                <div class="engine-input-group mb-0" style="flex-direction: column; align-items: stretch; gap: 4px;">
+                                    <span class="info-label" style="width: auto;">Board</span>
+                                    <select id="opt-board-select" class="info-input filled-input" style="cursor: pointer;">
+                                        <option value="kaya">Kaya</option>
+                                        <option value="sandalwood">Sandalwood and Ivory</option>
+                                        <option value="minimal">Minimal</option>
+                                        <option value="midnight">Midnight</option>
+                                    </select>
+                                </div>
+                                <div class="engine-input-group mb-0" style="flex-direction: column; align-items: stretch; gap: 4px;">
+                                    <span class="info-label" style="width: auto;">Stones</span>
+                                    <select id="opt-stone-select" class="info-input filled-input" style="cursor: pointer;">
+                                        <option value="shell">Slate & Shell</option>
+                                        <option value="ivory">Dyed Ivory</option>
+                                        <option value="minimal">Minimal</option>
+                                        <option value="midnight">Minimal Grey</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="options-section mb-0">
+                        <div class="options-header-row" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h4 class="options-heading" style="margin-bottom: 0;">AI Move Bubbles</h4>
+                            <button id="btn-reset-bubbles" class="action-btn" style="flex: none; width: max-content; margin: 0; padding-left: 15px; padding-right: 15px;">Revert to Defaults</button>
+                        </div>
+                        <div class="bubbles-horizontal-container">
+                            <div class="bubble-col">
+                                <span class="bubble-threshold">Best</span>
+                                <div class="bubble-swatch" id="swatch-best" data-bubble="best"></div>
+                            </div>
+                            <div class="bubble-col">
+                                <span class="bubble-threshold">Loss &le; <input type="number" id="opt-bub-thresh-good" class="info-input filled-input inline-thresh" step="0.1" min="0"></span>
+                                <div class="bubble-swatch" id="swatch-good" data-bubble="good"></div>
+                            </div>
+                            <div class="bubble-col">
+                                <span class="bubble-threshold">Loss &le; <input type="number" id="opt-bub-thresh-okay" class="info-input filled-input inline-thresh" step="0.1" min="0"></span>
+                                <div class="bubble-swatch" id="swatch-okay" data-bubble="okay"></div>
+                            </div>
+                            <div class="bubble-col">
+                                <span class="bubble-threshold">Loss &le; <input type="number" id="opt-bub-thresh-bad" class="info-input filled-input inline-thresh" step="0.1" min="0"></span>
+                                <div class="bubble-swatch" id="swatch-bad" data-bubble="bad"></div>
+                            </div>
+                            <div class="bubble-col">
+                                <span class="bubble-threshold" id="lbl-terrible-thresh">Loss &gt; 7.0</span>
+                                <div class="bubble-swatch" id="swatch-terrible" data-bubble="terrible"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div> <div class="modal-actions" style="margin-top: 20px;">
                 <button id="options-modal-cancel" class="modal-btn modal-btn-cancel">Cancel</button>
                 <button id="options-modal-save" class="modal-btn modal-btn-confirm btn-gold">Save Changes</button>
             </div>
@@ -530,7 +536,7 @@
 
             <p class="about-text">
                 Because these things always need to be named after a Japanese Go term<br><br>
-                Version 1.1.1<br>
+                Version 1.5.0<br>
                 Copyright &copy; 2026 The Hoshi Project<br><br>
                 <span class="about-text-small">
                     Licensed under the PolyForm Noncommercial License 1.0.0.<br>
@@ -584,6 +590,41 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="color-picker-popover" class="color-picker-popover">
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="info-label" style="width: 40px; font-size: 0.8rem; flex-shrink: 0;">RGBA</span>
+                <input type="text" id="cp-text" class="info-input filled-input" style="flex: 1; font-family: monospace; font-size: 0.85rem;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="info-label" style="width: 40px; font-size: 0.8rem; flex-shrink: 0;">HEX</span>
+                <input type="text" id="cp-hex-text" class="info-input filled-input" style="flex: 1; font-family: monospace; font-size: 0.85rem;">
+            </div>
+        </div>
+
+        <div class="cp-slider-group">
+            <div class="cp-slider-labels"><span class="info-label">Hue</span><span id="cp-h-val">0&deg;</span></div>
+            <input type="range" id="cp-hue" class="cp-range cp-hue-range" min="0" max="360" step="1" value="0">
+        </div>
+
+        <div class="cp-slider-group">
+            <div class="cp-slider-labels"><span class="info-label">Saturation</span><span id="cp-s-val">100%</span></div>
+            <input type="range" id="cp-sat" class="cp-range" min="0" max="100" step="1" value="100">
+        </div>
+
+        <div class="cp-slider-group">
+            <div class="cp-slider-labels"><span class="info-label">Lightness</span><span id="cp-l-val">50%</span></div>
+            <input type="range" id="cp-lit" class="cp-range" min="0" max="100" step="1" value="50">
+        </div>
+
+        <div class="cp-slider-group" style="margin-bottom: 0;">
+            <div class="cp-slider-labels"><span class="info-label">Opacity</span><span id="cp-a-val">100%</span></div>
+            <input type="range" id="cp-alpha" class="cp-range" min="0" max="1" step="0.01" value="1">
+        </div>
+
     </div>
 
     <script type="module" src="./bridge.js"></script>

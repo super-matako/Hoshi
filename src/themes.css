@@ -1,0 +1,229 @@
+/* ================================================================
+   HOSHI THEMES
+   ================================================================ */
+
+
+/* ---------- MOCHA (Original Default) ---------- */
+:root {
+
+  /* --- UI Backgrounds & Text --- */
+  --bg-color: #8f8074;
+  --panel-bg: #4a3b32;
+  --input-bg: #362a23;
+  --text-main: #f4ebd8;
+  --text-muted: #bdaea6;
+  --border-color: #665348;
+  --accent: #f2e8d5;
+  --accent-hover: #ffffff;
+  --active-bg: rgba(194, 155, 90, 0.25);
+  --accent-base: 194, 155, 90;
+
+  /* --- Window Header --- */
+  --header-bg: #4a3b32;
+  --header-border: #362a23;
+  --header-text: #f4ebd8;
+
+  /* --- Board Appearance (Canvas) --- */
+  --cvs-board-fallback: #DCB35C;
+  --cvs-grid-line: #2b1c14;
+  --cvs-star-point: #2b1c14;
+  --cvs-star-radius: 0.06;
+  --cvs-coord-text: #2b1c14;
+  --cvs-coord-highlight: #c43b3b;
+  --cvs-font-letter: "Google Sans", sans-serif;
+  --cvs-font-number: "Barlow Condensed", sans-serif;
+
+  /* --- Stones & Shadows --- */
+  --cvs-stone-black: #000000;
+  --cvs-stone-white: #ffffff;
+  --cvs-minimal-blk-stroke: transparent;
+  --cvs-minimal-wht-stroke: var(--cvs-grid-line);
+  --cvs-stone-blk-stroke-tl: rgba(137, 101, 93, 1);
+  --cvs-stone-blk-stroke-br: rgba(0, 0, 0, 1);
+  --cvs-stone-wht-stroke-tl: rgba(175, 154, 148, 1);
+  --cvs-stone-wht-stroke-br: rgba(137, 101, 93, 1);
+  --cvs-stone-shadow: rgba(74, 51, 27, 1);
+  --cvs-stone-blk-gap: rgba(102, 69, 44, 0.4);
+  --cvs-stone-wht-gap: rgba(140, 96, 70, 0.4);
+
+  /* --- KataGo Bubbles (on the board) --- */
+  --cvs-bubble-base: #DCB35C;
+  --cvs-bubble-unexplored: rgba(189, 174, 166, 0.85);
+  --cvs-bubble-best: rgba(59, 130, 246, 0.85);
+  --cvs-bubble-good: rgba(34, 197, 94, 0.85);
+  --cvs-bubble-okay: rgba(223, 213, 42, 0.8);
+  --cvs-bubble-bad: rgba(249, 115, 22, 0.85);
+  --cvs-bubble-terrible: rgba(239, 68, 68, 0.85);
+  --cvs-bubble-text: #ffffff;
+
+  /* --- Next‑Move Markers (circles / dashes) --- */
+  --cvs-marker-curr-blk: rgba(255, 255, 255, 1);
+  --cvs-marker-curr-wht: rgba(255, 255, 255, 1);
+  --cvs-marker-next-blk: rgba(255, 255, 255, 1);
+  --cvs-marker-next-wht: rgba(255, 255, 255, 1);
+  --cvs-marker-alt-blk: rgba(255, 255, 255, 0.75);
+  --cvs-marker-alt-wht: rgba(255, 255, 255, 0.75);
+  --cvs-marker-txt-blk: #ffffff;
+  --cvs-marker-txt-wht: #000000;
+
+  /* --- Markup & Tools --- */
+  --cvs-markup-ghost: #DCB35C;
+  --cvs-markup-active: #fcf8f2;
+  --cvs-markup-blk: #ffffff;
+  --cvs-markup-wht: #000000;
+  --cvs-highlight-base: 163, 60, 60;
+
+  /* --- Sidebar Charts & Game Tree --- */
+  --cvs-chart-center: rgba(189, 174, 166, 0.3);
+  --cvs-chart-score-fill: rgba(242, 232, 213, 0.15);
+  --cvs-chart-score-line: rgba(242, 232, 213, 0.6);
+  --cvs-chart-winrate: #f28b82;
+  --cvs-chart-curr-move: #f4ebd8;
+
+  --cvs-tree-branch: #bdaea6;
+  --cvs-tree-blk-border: #e0d5c1;
+  --cvs-tree-wht-border: #241c17;
+
+  /* Dynamic Shadows and UI Toggles --- */
+  --cvs-chart-text-shadow: rgba(0, 0, 0, 0.85);
+  --ui-toggle-thumb: var(--text-main);
+  --ui-slider-fill: var(--text-main);
+
+  /* --- UI Stone Colours --- */
+  --ui-blk-stone: #241c17;
+  --ui-wht-stone: #e3ded5;
+}
+
+
+/* ---------- CREAM ---------- */
+body.theme-cream {
+  --bg-color: #e3d8cd;
+  --panel-bg: #f4eee8;
+  --input-bg: #d6c9bc;
+  --text-main: #362821;
+  --text-muted: #827267;
+  --border-color: #c4b6a9;
+  --accent: #9c7a5c;
+  --accent-hover: #000000;
+  --active-bg: rgba(156, 122, 92, 0.15);
+  --accent-base: 156, 122, 92;
+
+  --header-bg: #f4eee8;
+  --header-border: #c4b6a9;
+  --header-text: #362821;
+
+  --cvs-chart-center: rgba(54, 40, 33, 0.15);
+  --cvs-chart-score-fill: rgba(156, 122, 92, 0.15);
+  --cvs-chart-score-line: rgba(156, 122, 92, 0.6);
+  --cvs-chart-winrate: #e06c6c;
+  --cvs-chart-curr-move: #362821;
+
+  --cvs-tree-branch: #a6988d;
+  --cvs-tree-blk-border: #827267;
+  --cvs-tree-wht-border: #c2ac97;
+
+  --cvs-chart-text-shadow: transparent;
+
+  --ui-blk-stone: #241c17;
+  --ui-wht-stone: #f4eee8;
+}
+
+
+/* ---------- WALNUT ---------- */
+body.theme-walnut {
+  --bg-color: #9c9086;
+  --panel-bg: #3a312a;
+  --input-bg: #24201c;
+  --text-main: #f2eee9;
+  --text-muted: #c8beb6;
+  --border-color: #6e625a;
+  --accent: #e8ded1;
+  --accent-hover: #ffffff;
+  --active-bg: rgba(180, 150, 105, 0.35);
+  --accent-base: 180, 150, 105;
+
+  --header-bg: #3a312a;
+  --header-border: #24201c;
+  --header-text: #f2eee9;
+
+  --cvs-board-fallback: #C29F54;
+  --cvs-grid-line: #261a13;
+  --cvs-star-point: #261a13;
+  --cvs-coord-text: #261a13;
+  --cvs-coord-highlight: #ad3b3b;
+
+  --cvs-chart-center: rgba(171, 159, 152, 0.3);
+  --cvs-tree-branch: #a69a92;
+}
+
+
+/* ---------- DARK SLATE ---------- */
+body.theme-dark {
+  --bg-color: #17181a;
+  --panel-bg: #26272a;
+  --input-bg: #0e0e0f;
+  --text-main: #e6e9ec;
+  --text-muted: #a0a5ad;
+  --border-color: #3e4147;
+  --accent: #a6a8b0;
+  --accent-hover: #ffffff;
+  --active-bg: rgba(166, 168, 176, 0.25);
+  --accent-base: 166, 168, 176;
+
+  --header-bg: #26272a;
+  --header-border: #0e0e0f;
+  --header-text: #e6e9ec;
+
+  --cvs-chart-center: rgba(255, 255, 255, 0.1);
+  --cvs-chart-score-fill: rgba(59, 130, 246, 0.15);
+  --cvs-chart-score-line: rgba(59, 130, 246, 0.6);
+  --cvs-chart-winrate: #ef4444;
+  --cvs-chart-curr-move: #e0e0e0;
+
+  --cvs-tree-branch: #666666;
+  --cvs-tree-blk-border: #888888;
+  --cvs-tree-wht-border: #333333;
+  --cvs-highlight-base: 207, 160, 68;
+
+  --ui-blk-stone: #111111;
+  --ui-wht-stone: #cccccc;
+}
+
+
+/* ---------- LIGHT ---------- */
+body.theme-light {
+  --ui-preview-highlight: #ff0000;
+  --cvs-chart-text-shadow: transparent;
+  --ui-toggle-thumb: #ffffff;
+  --ui-slider-fill: #666666;
+
+  --bg-color: #d2d6d9;
+  --panel-bg: #eff0f1;
+  --input-bg: #bcc0c3;
+  --text-main: #101314;
+  --text-muted: #585d61;
+  --border-color: #a2a7ab;
+  --accent: #344857;
+  --accent-hover: #000000;
+  --active-bg: rgba(52, 72, 87, 0.15);
+  --accent-base: 52, 72, 87;
+
+  --header-bg: #eff0f1;
+  --header-border: #a2a7ab;
+  --header-text: #101314;
+
+  --ui-blk-stone: #111111;
+  --ui-wht-stone: #d0d4da;
+
+  --cvs-chart-center: rgba(0, 0, 0, 0.1);
+  --cvs-chart-score-fill: rgba(52, 72, 87, 0.15);
+  --cvs-chart-score-line: rgba(52, 72, 87, 0.6);
+  --cvs-chart-winrate: #ef4444;
+  --cvs-chart-curr-move: #181c21;
+
+  --cvs-tree-branch: #7a8290;
+  --cvs-tree-blk-border: #4a5059;
+  --cvs-tree-wht-border: #2c3036;
+
+  --cvs-highlight-base: 255, 0, 0;
+}
