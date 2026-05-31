@@ -7,7 +7,7 @@ A simple SGF viewer/editor and GUI for KataGo AI to analyze one's Go games.
 ## Features
 * **Markup & Analysis:** SGF markup tools, local KataGo evaluation bubbles, and score estimation graphs.
 * **Interactive Stone Editing:** Right-click a stone on the board (or a node in the tree) to pick it up and move it. Hoshi will automatically recalculate the timelines and board states for all future variations.
-* **Customizable UI and Boards** Select from a variety of different combinations.
+* **Customizable UI and Boards:** Select from a variety of different combinations.
 
 ## KataGo Engine
 * Provide your own engine files or use **Auto-setup** feature to scan your system and automatically download a KataGo engine version.
