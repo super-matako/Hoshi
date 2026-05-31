@@ -747,11 +747,11 @@ let appSettings = {
     engineCfg: './KataGo/analysis_example.cfg',
     hotkeys: JSON.parse(JSON.stringify(DEFAULT_HOTKEYS)),
     bubbleColors: {
-        best: 'rgba(59, 130, 246, 0.85)',
-        good: 'rgba(16, 185, 129, 0.85)',
-        okay: 'rgba(245, 158, 11, 0.85)',
-        bad: 'rgba(239, 68, 68, 0.85)',
-        terrible: 'rgba(127, 29, 29, 0.85)'
+        best: 'rgba(51, 129, 255, 0.75)',
+        good: 'rgba(17, 197, 92, 0.75)',
+        okay: 'rgba(202, 199, 12, 0.75)',
+        bad: 'rgba(245, 101, 61, 0.75)',
+        terrible: 'rgba(211, 65, 39, 0.75)'
     },
     bubbleThresholds: { good: 2.0, okay: 4.0, bad: 7.0 }
 };
@@ -5253,12 +5253,13 @@ document.getElementById('btn-options-bottom').addEventListener('click', (e) => {
 
     // Helper: Automatically adjust the settings swatches to 65% for dark/complex boards
     const autoAdjustBubbleOpacity = (boardStyle) => {
-        const targetAlpha = (boardStyle === 'sandalwood' || boardStyle === 'midnight') ? 0.65 : 0.85;
+        const isDarkBoard = (boardStyle === 'sandalwood' || boardStyle === 'midnight');
+        const targetAlpha = isDarkBoard ? 0.65 : 0.75;
 
         ['best', 'good', 'okay', 'bad', 'terrible'].forEach(k => {
             const swatch = document.getElementById(`swatch-${k}`);
             if (swatch && swatch.dataset.color) {
-                // Safely extract the RGB values and inject the new Alpha
+                // Extract the RGB values and inject the new Alpha
                 const match = swatch.dataset.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
                 if (match) {
                     const newColor = `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${targetAlpha})`;
@@ -6382,11 +6383,11 @@ document.getElementById('btn-reset-bubbles').addEventListener('click', (e) => {
 
     // Hardcoded factory defaults
     const defaultColors = {
-        best: 'rgba(59, 130, 246, 0.85)',
-        good: 'rgba(16, 185, 129, 0.85)',
-        okay: 'rgba(245, 158, 11, 0.85)',
-        bad: 'rgba(239, 68, 68, 0.85)',
-        terrible: 'rgba(127, 29, 29, 0.85)'
+        best: 'rgba(51, 129, 255, 0.75)',
+        good: 'rgba(17, 197, 92, 0.75)',
+        okay: 'rgba(202, 199, 12, 0.75)',
+        bad: 'rgba(245, 101, 61, 0.75)',
+        terrible: 'rgba(211, 65, 39, 0.75)'
     };
     const defaultThresh = { good: 2.0, okay: 4.0, bad: 7.0 };
 
