@@ -1632,8 +1632,35 @@ function drawKataSuggestions() {
     let moves = [];
 
     if (currentNode.kataMoveInfos && currentNode.kataMoveInfos.length > 0) {
-        moves = [...currentNode.kataMoveInfos];
+        moves = currentNode.kataMoveInfos.map(m => ({...m}));
+    }
 
+    // --- TRUE BACKPROPAGATION ---
+    // Hijack shallow candidate moves with deeper child node evaluations
+    for (let child of currentNode.children) {
+        if (child.gtpCoord.toLowerCase() === 'pass' || child.scoreLead === null) continue;
+
+        let existingIndex = moves.findIndex(m => m.move === child.gtpCoord);
+        let parentVisitsForMove = existingIndex > -1 ? moves[existingIndex].visits : 0;
+
+        if (child.visits > parentVisitsForMove) {
+            let hijackedData = {
+                move: child.gtpCoord,
+                scoreLead: child.scoreLead,
+                winrate: child.winrate,
+                visits: child.visits
+            };
+
+            if (existingIndex > -1) {
+                moves[existingIndex] = hijackedData;
+            } else {
+                moves.push(hijackedData);
+            }
+        }
+    }
+
+    // Sort the potentially updated moves list so the "Best" move accurately reflects deep truths
+    if (moves.length > 0) {
         moves.sort((a, b) => {
             if (isBlackToPlay) {
                 if (b.winrate !== a.winrate) return b.winrate - a.winrate;
@@ -2050,7 +2077,22 @@ function drawTreeMarkers() {
 
         // Calculate the relative score shift from the parent state (only if parent has sufficient visits)
         if (currentNode.parent && (currentNode.parent.visits >= scoreThreshold || isAnalysisPaused) && currentNode.parent.kataMoveInfos && currentNode.parent.kataMoveInfos.length > 0) {
-            let pMoves = [...currentNode.parent.kataMoveInfos];
+            let pMoves = currentNode.parent.kataMoveInfos.map(m => ({...m}));
+
+            // --- TRUE BACKPROPAGATION ---
+            // Hijack the parent's shallow analysis with any deeper reads from sibling nodes
+            for (let sibling of currentNode.parent.children) {
+                if (sibling.gtpCoord.toLowerCase() === 'pass' || sibling.scoreLead === null) continue;
+                let existingIndex = pMoves.findIndex(m => m.move === sibling.gtpCoord);
+                let parentVisits = existingIndex > -1 ? pMoves[existingIndex].visits : 0;
+
+                if (sibling.visits > parentVisits) {
+                    let hijackedData = { move: sibling.gtpCoord, scoreLead: sibling.scoreLead, winrate: sibling.winrate, visits: sibling.visits };
+                    if (existingIndex > -1) pMoves[existingIndex] = hijackedData;
+                    else pMoves.push(hijackedData);
+                }
+            }
+
             let parentWasBlackToPlay = currentNode.parent.color === 'white' || currentNode.parent === rootNode;
 
             let absoluteBestMove = pMoves.reduce((best, current) => {
