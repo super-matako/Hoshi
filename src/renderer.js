@@ -4475,23 +4475,6 @@ function sendAnalysisQuery() {
         }
     }
 
-    // Phase 1.5 Interceptor: Sweeps siblings/variations early
-    let variationToEvaluate = null;
-    if (appSettings.kataPassCount > 1 && needs[0].length === 0) {
-        if (currentNode.parent) {
-            for (let child of currentNode.parent.children) {
-                if (child.gtpCoord.toLowerCase() === 'pass' || child.gtpCoord === 'resign' || child === currentNode) continue;
-                if (child.scoreLead === null) { variationToEvaluate = child; break; }
-            }
-        }
-        if (!variationToEvaluate) {
-            for (let child of currentNode.children) {
-                if (child.gtpCoord.toLowerCase() === 'pass' || child.gtpCoord === 'resign') continue;
-                if (child.scoreLead === null) { variationToEvaluate = child; break; }
-            }
-        }
-    }
-
     let turnsToAnalyze = [currentIndex];
     let currentPhaseMaxVisits = 1000;
     let includeOwnership = false;
@@ -4503,45 +4486,27 @@ function sendAnalysisQuery() {
         includeOwnership = true;
         targetPath = fullPath;
     } else {
-      let activePass = -1;
-      for (let p = 0; p < appSettings.kataPassCount; p++) {
-          if (needs[p].length > 0) {
-              activePass = p;
-              break;
-          }
-      }
+        let activePass = -1;
+        for (let p = 0; p < appSettings.kataPassCount; p++) {
+            if (needs[p].length > 0) {
+                activePass = p;
+                break;
+            }
+        }
 
-      if (activePass === 0) {
+        if (activePass === 0) {
             currentAnalysisPhase = 1;
             currentPhaseMaxVisits = appSettings.kataVisits[0];
-
-            // Only prioritize the current move if it actually needs visits for this pass
             turnsToAnalyze = needs[0].includes(currentIndex)
                 ? [currentIndex, ...needs[0].filter(i => i !== currentIndex)]
                 : [...needs[0]];
-
             targetPath = fullPath;
-        } else if (variationToEvaluate) {
-            currentAnalysisPhase = 1.5;
-            currentPhaseMaxVisits = appSettings.kataVisits[1] || appSettings.kataVisits[0];
-
-            let varPath = [];
-            let temp = variationToEvaluate;
-            while(temp !== null) {
-                if (temp.gtpCoord !== 'resign') varPath.unshift(temp);
-                temp = temp.parent;
-            }
-            targetPath = varPath;
-            turnsToAnalyze = [varPath.length - 1];
         } else if (activePass > 0) {
             currentAnalysisPhase = activePass + 1; // Phase 2, 3, 4...
             currentPhaseMaxVisits = appSettings.kataVisits[activePass];
-
-            // Only prioritize the current move if it actually needs visits for this pass
             turnsToAnalyze = needs[activePass].includes(currentIndex)
                 ? [currentIndex, ...needs[activePass].filter(i => i !== currentIndex)]
                 : [...needs[activePass]];
-
             targetPath = fullPath;
         } else {
             // All passes completed. Enter deep ponder mode on the active move.
@@ -4551,12 +4516,12 @@ function sendAnalysisQuery() {
             targetPath = fullPath;
         }
 
-      let parentIndex = turnsToAnalyze[0] - 1;
-      if (targetPath === fullPath && parentIndex >= 0 && fullPath[parentIndex].scoreLead === null && !turnsToAnalyze.includes(parentIndex)) {
-          turnsToAnalyze.push(parentIndex);
-      }
+        let parentIndex = turnsToAnalyze[0] - 1;
+        if (targetPath === fullPath && parentIndex >= 0 && fullPath[parentIndex].scoreLead === null && !turnsToAnalyze.includes(parentIndex)) {
+            turnsToAnalyze.push(parentIndex);
+        }
 
-      includeOwnership = (currentAnalysisPhase === appSettings.kataPassCount || currentAnalysisPhase === "ponder");
+        includeOwnership = (currentAnalysisPhase === appSettings.kataPassCount || currentAnalysisPhase === "ponder");
     }
 
     currentAnalysisPath = targetPath;
@@ -4579,8 +4544,8 @@ function sendAnalysisQuery() {
         maxVisits: currentPhaseMaxVisits
     };
 
-    // Reset the sweep tracker for the new pass
-    currentEngineSweepTurn = null;
+    // Keep the UI responsive by instantly pointing the blue line to the very first turn KataGo is ABOUT to analyze
+    currentEngineSweepTurn = turnsToAnalyze.length > 0 ? turnsToAnalyze[0] : currentIndex;
 
     window.electronAPI.sendAnalysisQuery(query);
 }
@@ -4658,11 +4623,11 @@ if (window.electronAPI) {
         let promotePhase = false;
 
         if (!showingScoreEstimate) {
-            if (currentAnalysisPhase === 1.5) {
-                promotePhase = true;
-            } else if (currentAnalysisPhase >= 1 && currentAnalysisPhase <= appSettings.kataPassCount) {
+            if (currentAnalysisPhase >= 1 && currentAnalysisPhase <= appSettings.kataPassCount) {
                 let targetVisits = appSettings.kataVisits[currentAnalysisPhase - 1];
-                promotePhase = fullPath.slice(1).every(n => n.visits >= targetVisits || n.gtpCoord.toLowerCase() === 'pass');
+                // Allow a tiny 2-visit tolerance. KataGo sometimes terminates searches early on forced lines.
+                // Without this, the engine can get permanently stuck waiting for a node to hit 100 that stopped at 99.
+                promotePhase = fullPath.slice(1).every(n => n.visits >= (targetVisits - 2) || n.gtpCoord.toLowerCase() === 'pass');
             }
         }
 
